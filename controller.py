@@ -131,7 +131,7 @@ if __name__ == "__main__":
     c = Controller()
     c.connect()
     c.request_data()
-    c.set_guided_mode()
+    # c.set_guided_mode()
     c.arm()
     c.takeoff(1.0)
     time.sleep(3)
