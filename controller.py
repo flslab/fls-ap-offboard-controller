@@ -107,6 +107,7 @@ class Controller:
 
 if __name__ == "__main__":
     c = Controller()
+    c.connect()
     c.set_guided_mode()
     c.arm()
     c.takeoff(1.0)
