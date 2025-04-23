@@ -249,7 +249,7 @@ if __name__ == "__main__":
     c = Controller()
     c.connect()
     c.request_data()
-    c.set_mode('STABILIZE')
+    c.set_mode('GUIDED')
     # c.set_guided_mode()
     c.arm()
     time.sleep(5)
