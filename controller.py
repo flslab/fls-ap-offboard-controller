@@ -169,51 +169,57 @@ class Controller:
 
     def set_mode(self, mode):
         """Set the flight mode"""
-        if not self.connected:
-            self.logger.error("Not connected to vehicle")
-            return False
+        self.master.set_mode_apm(mode)
 
-        # Map the mode name to mode ID
-        mode_mapping = {
-            'STABILIZE': 0,
-            'ACRO': 1,
-            'ALT_HOLD': 2,
-            'AUTO': 3,
-            'GUIDED': 4,
-            'LOITER': 5,
-            'RTL': 6,
-            'CIRCLE': 7,
-            'POSITION': 8,
-            'LAND': 9,
-            'GUIDED_NOGPS': 20,
-        }
-
-        if mode not in mode_mapping:
-            self.logger.error(f"Unknown mode: {mode}")
-            return False
-
-        mode_id = mode_mapping[mode]
-
-        # Send mode change command
-        self.master.mav.command_long_send(
-            self.master.target_system,
-            self.master.target_component,
-            mavutil.mavlink.MAV_CMD_DO_SET_MODE,
-            0,
-            mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
-            mode_id,
-            0, 0, 0, 0, 0
-        )
-
-        # Wait for ACK
-        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
-        if ack:
-            self.mode = mode
-            self.logger.info(f"Mode changed to {mode}")
-            return True
-        else:
-            self.logger.error(f"Failed to change mode to {mode}")
-            return False
+        time.sleep(5)
+        custom_mode = self.master.mav.flightmode
+        mode = self.master.flightmode  # human-readable mode string, if available
+        print(f"Current mode: {mode}")
+        # if not self.connected:
+        #     self.logger.error("Not connected to vehicle")
+        #     return False
+        #
+        # # Map the mode name to mode ID
+        # mode_mapping = {
+        #     'STABILIZE': 0,
+        #     'ACRO': 1,
+        #     'ALT_HOLD': 2,
+        #     'AUTO': 3,
+        #     'GUIDED': 4,
+        #     'LOITER': 5,
+        #     'RTL': 6,
+        #     'CIRCLE': 7,
+        #     'POSITION': 8,
+        #     'LAND': 9,
+        #     'GUIDED_NOGPS': 20,
+        # }
+        #
+        # if mode not in mode_mapping:
+        #     self.logger.error(f"Unknown mode: {mode}")
+        #     return False
+        #
+        # mode_id = mode_mapping[mode]
+        #
+        # # Send mode change command
+        # self.master.mav.command_long_send(
+        #     self.master.target_system,
+        #     self.master.target_component,
+        #     mavutil.mavlink.MAV_CMD_DO_SET_MODE,
+        #     0,
+        #     mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
+        #     mode_id,
+        #     0, 0, 0, 0, 0
+        # )
+        #
+        # # Wait for ACK
+        # ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
+        # if ack:
+        #     self.mode = mode
+        #     self.logger.info(f"Mode changed to {mode}")
+        #     return True
+        # else:
+        #     self.logger.error(f"Failed to change mode to {mode}")
+        #     return False
 
 
     # # Wait until near 1 meter (or timeout)
