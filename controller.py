@@ -4,13 +4,34 @@ from pymavlink import mavutil
 import time
 
 
+BLUE = "\033[94m"
+RESET = "\033[0m"
+
+
+def create_logger(name, level=logging.INFO):
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    logger.propagate = False
+
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+
+    formatter = logging.Formatter(BLUE+'%(name)s - %(levelname)s - %(message)s'+RESET)
+    ch.setFormatter(formatter)
+
+    if not logger.hasHandlers():
+        logger.addHandler(ch)
+
+    return logger
+
+
 class Controller:
     def __init__(self, device="/dev/ttyAMA0", baudrate=57600):
         self.device = device
         self.baudrate = baudrate
         self.master = None
-        self.logger = logging.getLogger('Controller')
-        self.logger.setLevel(logging.INFO)
+        self.logger = create_logger("Controller")
 
     def connect(self):
         self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
@@ -108,6 +129,7 @@ class Controller:
 if __name__ == "__main__":
     c = Controller()
     c.connect()
+    c.request_data()
     c.set_guided_mode()
     c.arm()
     c.takeoff(1.0)
