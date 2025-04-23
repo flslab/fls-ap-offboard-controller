@@ -172,6 +172,7 @@ class Controller:
     def set_mode(self, mode):
         """Set the flight mode"""
         self.master.set_mode_apm(mode)
+        print(self.master.wait_heartbeat())
 
         time.sleep(5)
         # custom_mode = self.master.mav.flightmode
@@ -252,7 +253,7 @@ if __name__ == "__main__":
     # c.set_guided_mode()
     c.arm()
     time.sleep(5)
-    c.takeoff(1.0)
-    time.sleep(3)
-    c.land()
+    # c.takeoff(1.0)
+    # time.sleep(3)
+    # c.land()
     c.disarm()
