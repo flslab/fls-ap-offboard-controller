@@ -63,7 +63,8 @@ class Controller:
         time.sleep(3)
 
     def set_guided_mode(self):
-        mode = 'GUIDED_NOGPS'
+        mode = 'GUIDED'
+        self.logger.info(f"Setting mode to {mode}")
         mode_id = self.master.mode_mapping()[mode]
         self.master.mav.set_mode_send(
             self.master.target_system,
@@ -73,7 +74,7 @@ class Controller:
         while not ack:
             ack_msg = self.master.recv_match(type='COMMAND_ACK', blocking=True)
             if ack_msg.command == mavutil.mavlink.MAV_CMD_DO_SET_MODE:
-                self.logger.info("GUIDED mode set")
+                self.logger.info(f"{mode} mode set")
                 ack = True
 
     # Arm the drone
