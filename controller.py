@@ -128,6 +128,8 @@ class Controller:
             target_altitude
         )
         self.logger.info(f"Takeoff command sent to {target_altitude} meters")
+        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF)
+
 
     # Land the drone
     def land(self):
