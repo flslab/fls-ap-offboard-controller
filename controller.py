@@ -32,12 +32,15 @@ class Controller:
         self.baudrate = baudrate
         self.master = None
         self.logger = create_logger("Controller")
+        self.is_armed = False
+        self.connected = False
 
     def connect(self):
         self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
 
         self.logger.info("Waiting for heartbeat...")
         self.master.wait_heartbeat()
+        self.connected = True
         self.logger.info(f"Heartbeat from system (system {self.master.target_system} component {self.master.target_component})")
 
     def request_data(self):
@@ -77,11 +80,43 @@ class Controller:
                 self.logger.info(f"{mode} mode set")
                 ack = True
 
-    # Arm the drone
+    def wait_for_command_ack(self, command, timeout=5):
+        """Wait for command acknowledgement"""
+        start = time.time()
+        while time.time() - start < timeout:
+            msg = self.master.recv_match(type='COMMAND_ACK', blocking=True, timeout=1)
+            if msg and msg.command == command:
+                if msg.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
+                    return True
+                else:
+                    self.logger.error(f"Command {command} failed with result: {msg.result}")
+                    return False
+
+        self.logger.error(f"No ACK received for command {command}")
+        return False
+
     def arm(self):
-        self.master.arducopter_arm()
-        self.master.motors_armed_wait()
-        self.logger.info("Drone armed")
+        """Arm the vehicle"""
+        self.logger.info("Arming motors")
+
+        # Send arming command
+        self.master.mav.command_long_send(
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+            0,
+            1, 0, 0, 0, 0, 0, 0
+        )
+
+        # Wait for ACK
+        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM)
+        if ack:
+            self.is_armed = True
+            self.logger.info("Vehicle armed")
+            return True
+        else:
+            self.logger.error("Failed to arm")
+            return False
 
     # Take off to target altitude (in meters)
     def takeoff(self, target_altitude):
@@ -104,6 +139,32 @@ class Controller:
         )
         self.logger.info("Landing command sent")
 
+    def disarm(self):
+        """Disarm the vehicle"""
+        if not self.connected:
+            self.logger.error("Not connected to vehicle")
+            return False
+
+        self.logger.info("Disarming motors")
+
+        # Send disarming command
+        self.master.mav.command_long_send(
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+            0,
+            0, 0, 0, 0, 0, 0, 0
+        )
+
+        # Wait for ACK
+        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM)
+        if ack:
+            self.is_armed = False
+            self.logger.info("Vehicle disarmed")
+            return True
+        else:
+            self.logger.error("Failed to disarm")
+            return False
     # Main sequence
 
 
@@ -133,6 +194,8 @@ if __name__ == "__main__":
     c.request_data()
     # c.set_guided_mode()
     c.arm()
-    c.takeoff(1.0)
-    time.sleep(3)
-    c.land()
+    time.sleep(5)
+    c.disarm()
+    # c.takeoff(1.0)
+    # time.sleep(3)
+    # c.land()
