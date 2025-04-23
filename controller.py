@@ -172,9 +172,9 @@ class Controller:
         self.master.set_mode_apm(mode)
 
         time.sleep(5)
-        custom_mode = self.master.mav.flightmode
-        mode = self.master.flightmode  # human-readable mode string, if available
-        print(f"Current mode: {mode}")
+        # custom_mode = self.master.mav.flightmode
+        # mode = self.master.flightmode  # human-readable mode string, if available
+        # print(f"Current mode: {mode}")
         # if not self.connected:
         #     self.logger.error("Not connected to vehicle")
         #     return False
