@@ -251,6 +251,7 @@ if __name__ == "__main__":
     c.arm()
     time.sleep(2)
     c.takeoff(1.0)
-    time.sleep(5)
+    time.sleep(15)
     c.land()
+    time.sleep(15)
     c.disarm()
