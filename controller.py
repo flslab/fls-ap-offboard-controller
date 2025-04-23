@@ -253,5 +253,6 @@ if __name__ == "__main__":
     c.takeoff(1.0)
     time.sleep(15)
     c.land()
+
     time.sleep(15)
     c.disarm()
