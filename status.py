@@ -72,10 +72,10 @@ def disarm_vehicle(mav):
 
 def main():
     parser = argparse.ArgumentParser(description="Motor test script using MAVLink")
-    parser.add_argument('--device', type=str, required=True,
+    parser.add_argument('--device', type=str, default="/dev/ttyAMA0",
                         help='MAVLink device path, e.g., /dev/ttyAMA0 or udp:14550')
     parser.add_argument('--baudrate', type=int, default=57600, help='Baud rate for serial connection (default: 57600)')
-    parser.add_argument('--motors', type=int, nargs='+', required=True,
+    parser.add_argument('--motors', type=int, nargs='+',
                         help='Motor indices to spin (0-based). Example: --motors 0 2 3')
     parser.add_argument('--throttle_type', type=int, choices=[0, 1], default=0,
                         help='Throttle type: 0=Percentage 0-100m, 1=PWM 1000-2000')
