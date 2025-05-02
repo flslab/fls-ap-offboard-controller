@@ -87,6 +87,7 @@ def main():
     parser.add_argument('--log', type=str, default='log.csv', help='Output log file (CSV)')
 
     args = parser.parse_args()
+    motors = args.motors if args.motors is not None else []
     log_path = f"M{'_'.join([str(m) for m in args.motors])}_T{args.throttle_value:.0f}_{args.log}"
 
     print("Connecting to vehicle...")
