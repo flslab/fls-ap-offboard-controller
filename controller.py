@@ -1,9 +1,7 @@
 import logging
-import sys
-import select
-import time
 
 from pymavlink import mavutil
+import time
 
 
 BLUE = "\033[94m"
@@ -251,14 +249,8 @@ if __name__ == "__main__":
     c.set_mode('GUIDED')
     # c.set_guided_mode()
     c.arm()
-    time.sleep(1)
-    c.arm()
+    time.sleep(5)
 
-    print("Press any key within 10 seconds to cancel...")
-    i, o, e = select.select([sys.stdin], [], [], 10)
-    if i:
-        print("Key pressed. Exiting.")
-        sys.exit()
     c.takeoff(1.0)
     time.sleep(15)
     c.land()
