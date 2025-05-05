@@ -95,6 +95,39 @@ class Controller:
         self.logger.error(f"No ACK received for command {command}")
         return False
 
+    def arm_with_retry(self):
+        """Arm the vehicle with retry"""
+        if not self.connected:
+            self.logger.error("Not connected to vehicle")
+            return False
+
+        self.logger.info("Arming motors")
+
+        # Try up to 3 times to arm
+        for attempt in range(3):
+            # Override any pre-arm failsafe checks
+            self.master.mav.command_long_send(
+                self.master.target_system,
+                self.master.target_component,
+                mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
+                0,
+                1, 21196, 0, 0, 0, 0, 0  # 21196 is a magic number that forces arming
+            )
+
+            # Wait for armed status
+            start = time.time()
+            while time.time() - start < 5:
+                heartbeat = self.master.recv_match(type='HEARTBEAT', blocking=True, timeout=1)
+                if heartbeat and heartbeat.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED:
+                    self.is_armed = True
+                    self.logger.info("Vehicle armed")
+                    return True
+
+            self.logger.warning(f"Arm attempt {attempt + 1} failed, retrying...")
+
+        self.logger.error("Failed to arm after multiple attempts")
+        return False
+
     def arm(self):
         """Arm the vehicle"""
         self.logger.info("Arming motors")
@@ -105,7 +138,7 @@ class Controller:
             self.master.target_component,
             mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
             0,
-            1, 0, 0, 0, 0, 0, 0
+            1, 21196, 0, 0, 0, 0, 0
         )
 
         # Wait for ACK
@@ -248,7 +281,7 @@ if __name__ == "__main__":
     c.request_data()
     c.set_mode('GUIDED')
     # c.set_guided_mode()
-    c.arm()
+    c.arm_with_retry()
     time.sleep(5)
 
     c.takeoff(1.0)
