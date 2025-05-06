@@ -52,19 +52,29 @@ class Controller:
 
         time.sleep(2)
 
-        self.logger.info("Setting up data streams...")
-        for i in range(0, 3):  # Try a few times to make sure it gets through
-            self.master.mav.request_data_stream_send(
-                self.master.target_system,
-                self.master.target_component,
-                mavutil.mavlink.MAV_DATA_STREAM_ALL,
-                4,  # 4 Hz
-                1  # Start sending
-            )
-            time.sleep(0.5)
+        # self.logger.info("Setting up data streams...")
+        # for i in range(0, 3):  # Try a few times to make sure it gets through
+        #     self.master.mav.request_data_stream_send(
+        #         self.master.target_system,
+        #         self.master.target_component,
+        #         mavutil.mavlink.MAV_DATA_STREAM_ALL,
+        #         4,  # 4 Hz
+        #         1  # Start sending
+        #     )
+        #     time.sleep(0.5)
+        #
+        # self.logger.info("Waiting for system initialization...")
+        # time.sleep(3)
 
-        self.logger.info("Waiting for system initialization...")
-        time.sleep(3)
+    def reboot(self):
+        self.master.mav.command_long_send(
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_CMD_PREFLIGHT_REBOOT_SHUTDOWN,
+            0,  # confirmation
+            1,  # param1: 1=reboot autopilot
+            0, 0, 0, 0, 0, 0  # unused parameters
+        )
 
     def set_guided_mode(self):
         mode = 'GUIDED'
@@ -297,10 +307,16 @@ class Controller:
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--test-motors", action="store_true")
+    arg_parser.add_argument("--reboot", action="store_true")
     args = arg_parser.parse_args()
 
     c = Controller()
     c.connect()
+
+    if args.reboot:
+        c.reboot()
+        exit()
+
     c.request_data()
 
     if args.test_motors:
