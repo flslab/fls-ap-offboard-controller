@@ -1,3 +1,4 @@
+import argparse
 import logging
 
 from pymavlink import mavutil
@@ -294,14 +295,19 @@ class Controller:
 
 
 if __name__ == "__main__":
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("--test-motors", action="store_true")
+    args = arg_parser.parse_args()
+
     c = Controller()
     c.connect()
     c.request_data()
-    c.set_mode('GUIDED')
-    # c.set_guided_mode()
 
-    c.test_motors()
-    time.sleep(5)
+    if args.test_motors:
+        c.test_motors()
+        time.sleep(5)
+
+    c.set_mode('GUIDED')
 
     c.arm_with_retry()
     time.sleep(5)
