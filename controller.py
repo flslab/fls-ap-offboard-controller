@@ -3,7 +3,6 @@ import logging
 from pymavlink import mavutil
 import time
 
-
 BLUE = "\033[94m"
 RESET = "\033[0m"
 
@@ -17,7 +16,7 @@ def create_logger(name, level=logging.INFO):
     ch = logging.StreamHandler()
     ch.setLevel(level)
 
-    formatter = logging.Formatter(BLUE+'%(name)s - %(levelname)s - %(message)s'+RESET)
+    formatter = logging.Formatter(BLUE + '%(name)s - %(levelname)s - %(message)s' + RESET)
     ch.setFormatter(formatter)
 
     if not logger.hasHandlers():
@@ -41,7 +40,8 @@ class Controller:
         self.logger.info("Waiting for heartbeat...")
         self.master.wait_heartbeat()
         self.connected = True
-        self.logger.info(f"Heartbeat from system (system {self.master.target_system} component {self.master.target_component})")
+        self.logger.info(
+            f"Heartbeat from system (system {self.master.target_system} component {self.master.target_component})")
 
     def request_data(self):
         self.logger.info("Requesting parameters...")
@@ -164,7 +164,6 @@ class Controller:
         self.logger.info(f"Takeoff command sent to {target_altitude} meters")
         ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF)
 
-
     # Land the drone
     def land(self):
         self.master.mav.command_long_send(
@@ -201,7 +200,6 @@ class Controller:
         else:
             self.logger.error("Failed to disarm")
             return False
-
 
     def set_mode(self, mode):
         """Set the flight mode"""
@@ -244,7 +242,25 @@ class Controller:
 
         print(self.master.wait_heartbeat())
 
-        #
+    def send_motor_test(self, motor_index, throttle_type, throttle_value, duration):
+        self.master.mav.command_long_send(
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_CMD_DO_MOTOR_TEST,
+            0,  # confirmation
+            motor_index,  # param1: motor index
+            throttle_type,  # param2: throttle type
+            throttle_value,  # param3: throttle value
+            duration,  # param4: timeout (seconds)
+            0, 0, 0  # param5-7: unused
+        )
+
+    def test_motors(self):
+        for i in range(4):
+            self.send_motor_test(i+1, throttle_type=0, throttle_value=10, duration=1)
+            time.sleep(0.5)
+
+    #
         # # Wait for ACK
         # ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
         # if ack:
@@ -254,7 +270,6 @@ class Controller:
         # else:
         #     self.logger.error(f"Failed to change mode to {mode}")
         #     return False
-
 
     # # Wait until near 1 meter (or timeout)
     # print("Waiting to reach target altitude...")
@@ -276,12 +291,16 @@ class Controller:
     # land()
     # print("Mission complete.")
 
+
 if __name__ == "__main__":
     c = Controller()
     c.connect()
     c.request_data()
     c.set_mode('GUIDED')
     # c.set_guided_mode()
+
+    c.test_motors()
+
     c.arm_with_retry()
     time.sleep(5)
 
