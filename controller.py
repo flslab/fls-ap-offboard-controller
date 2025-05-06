@@ -258,7 +258,7 @@ class Controller:
     def test_motors(self):
         for i in range(4):
             self.send_motor_test(i+1, throttle_type=0, throttle_value=10, duration=1)
-            time.sleep(0.5)
+            time.sleep(0.25)
 
     #
         # # Wait for ACK
@@ -300,6 +300,7 @@ if __name__ == "__main__":
     # c.set_guided_mode()
 
     c.test_motors()
+    time.sleep(2)
 
     c.arm_with_retry()
     time.sleep(5)
