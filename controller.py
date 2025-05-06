@@ -106,12 +106,13 @@ class Controller:
         # Try up to 3 times to arm
         for attempt in range(3):
             # Override any pre-arm failsafe checks
+            # 21196 as the 6th param is a magic number that forces arming
             self.master.mav.command_long_send(
                 self.master.target_system,
                 self.master.target_component,
                 mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
                 0,
-                1, 21196, 0, 0, 0, 0, 0  # 21196 is a magic number that forces arming
+                1, 0, 0, 0, 0, 0, 0
             )
 
             # Wait for armed status
@@ -138,7 +139,7 @@ class Controller:
             self.master.target_component,
             mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM,
             0,
-            1, 21196, 0, 0, 0, 0, 0
+            1, 0, 0, 0, 0, 0, 0
         )
 
         # Wait for ACK
