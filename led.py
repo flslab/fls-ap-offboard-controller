@@ -47,4 +47,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         for i in range(NUM_PIXELS):
             pixels[i] = (0, 0, 0)
-            pixels.show()
+        pixels.show()
