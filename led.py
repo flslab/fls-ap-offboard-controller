@@ -11,7 +11,7 @@ pixels = neopixel.NeoPixel_SPI(
 )
 
 # Parameters
-dot_color = (227, 253, 255)
+dot_color = (227, 253, 125)
 tail_decay = 0.5  # How quickly the tail fades (0.0–1.0)
 delay = 0.02  # Time between frames
 
