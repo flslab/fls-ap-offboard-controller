@@ -32,11 +32,14 @@ if __name__ == "__main__":
             int(base_color[2] * brightness))
         )
 
+    print(colors)
+
     try:
         while True:
             for i in range(NUM_PIXELS):
                 for j in range(LENGTH):
                     pixels[(i+j) % NUM_PIXELS] = colors[j]
+                    print(colors[j])
                 pixels.show()
                 time.sleep(DELAY)
                 pixels.fill(0)
