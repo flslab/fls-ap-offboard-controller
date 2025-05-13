@@ -32,15 +32,15 @@ if __name__ == "__main__":
             int(base_color[2] * brightness))
         )
 
-    print(colors)
+    # print(colors)
 
-    colors = [
-        rgb_to_hex_int(255,0,0),
-        rgb_to_hex_int(0,255,0),
-        rgb_to_hex_int(0,0,255),
-        rgb_to_hex_int(255,0,255),
-        rgb_to_hex_int(255,255,0),
-    ]
+    # colors = [
+    #     rgb_to_hex_int(255,0,0),
+    #     rgb_to_hex_int(0,255,0),
+    #     rgb_to_hex_int(0,0,255),
+    #     rgb_to_hex_int(255,0,255),
+    #     rgb_to_hex_int(255,255,0),
+    # ]
 
     try:
         while True:
