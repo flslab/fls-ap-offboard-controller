@@ -17,7 +17,7 @@ pixels = neopixel.NeoPixel_SPI(
 
 # pixels.fill((0,0,0))
 def rgb_to_hex_int(r, g, b):
-    return (g << 16) | (r << 8) | b
+    return (r << 16) | (g << 8) | b
 
 
 if __name__ == "__main__":
