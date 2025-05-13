@@ -331,7 +331,7 @@ if __name__ == "__main__":
     c.arm_with_retry()
     if args.led:
         led = MovingDotLED()
-        led.run()
+        led.start()
 
     time.sleep(5)
 
