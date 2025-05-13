@@ -343,5 +343,4 @@ if __name__ == "__main__":
     c.disarm()
 
     if args.led:
-        led = MovingDotLED()
         led.stop()

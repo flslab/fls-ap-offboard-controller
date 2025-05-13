@@ -50,8 +50,7 @@ class MovingDotLED(threading.Thread):
 
     def stop(self):
         self.running = False
-        if self.is_alive():
-            self.join()
+        self.join()
         self.clear()
 
     def clear(self):
