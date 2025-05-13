@@ -3,7 +3,7 @@ import board
 import neopixel_spi as neopixel
 
 NUM_PIXELS = 46
-PIXEL_ORDER = neopixel.RGB
+PIXEL_ORDER = neopixel.GRB
 COLORS = (0xFF0000, 0x00FF00, 0x0000FF)
 DELAY = 0.1
 LENGTH = 5
@@ -17,7 +17,7 @@ pixels = neopixel.NeoPixel_SPI(
 
 # pixels.fill((0,0,0))
 def rgb_to_hex_int(r, g, b):
-    return (r << 16) | (g << 8) | b
+    return (g << 16) | (r << 8) | b
 
 
 if __name__ == "__main__":
