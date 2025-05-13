@@ -35,8 +35,8 @@ if __name__ == "__main__":
     try:
         while True:
             for i in range(NUM_PIXELS):
-                for i in range(LENGTH):
-                    pixels[(i+LENGTH) % NUM_PIXELS] = colors[i]
+                for j in range(LENGTH):
+                    pixels[(i+j) % NUM_PIXELS] = colors[j]
                 pixels.show()
                 time.sleep(DELAY)
                 pixels.fill(0)
