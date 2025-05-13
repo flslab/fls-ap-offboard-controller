@@ -11,7 +11,7 @@ pixels = neopixel.NeoPixel_SPI(
 )
 
 # Parameters
-dot_color = (227, 253, 125)
+dot_color = (227, 253, 255)
 tail_decay = 0.5  # How quickly the tail fades (0.0–1.0)
 delay = 0.02  # Time between frames
 
@@ -35,9 +35,16 @@ def draw_frame():
     pixels.show()
 
 
-while True:
-    for pos in range(NUM_PIXELS):
-        fade_tail()
-        leds[pos] = dot_color
-        draw_frame()
-        time.sleep(delay)
+if __name__ == "__main__":
+    try:
+        while True:
+            for pos in range(NUM_PIXELS):
+                fade_tail()
+                leds[pos] = dot_color
+                draw_frame()
+                time.sleep(delay)
+
+    except KeyboardInterrupt:
+        for i in range(NUM_PIXELS):
+            pixels[i] = (0, 0, 0)
+            pixels.show()
