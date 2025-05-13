@@ -57,8 +57,9 @@ class MovingDotLED(threading.Thread):
         self.leds = [(0, 0, 0)] * self.num_pixels
         self.draw_frame()
 
+
 if __name__ == '__main__':
     led = MovingDotLED()
-    led.start()
+    led.run()
     time.sleep(10)
     led.stop()
