@@ -1,50 +1,64 @@
 import time
+import threading
 import board
 import neopixel_spi as neopixel
 
-NUM_PIXELS = 46
-PIXEL_ORDER = neopixel.GRB
-spi = board.SPI()
 
-pixels = neopixel.NeoPixel_SPI(
-    spi, NUM_PIXELS, pixel_order=PIXEL_ORDER, auto_write=False, brightness=1.0
-)
+class MovingDotLED(threading.Thread):
+    def __init__(self, num_pixels=46, color=(227, 253, 255), tail_decay=0.75, delay=0.02):
+        super().__init__()
+        self.num_pixels = num_pixels
+        self.color = color
+        self.tail_decay = tail_decay
+        self.delay = delay
+        self.leds = [(0, 0, 0)] * self.num_pixels
+        self.running = False
 
-# Parameters
-dot_color = (227, 253, 255)
-tail_decay = 0.5  # How quickly the tail fades (0.0–1.0)
-delay = 0.02  # Time between frames
-
-# Initialize an array of RGB values (like a framebuffer)
-leds = [(0, 0, 0)] * NUM_PIXELS
-
-
-def fade_tail():
-    for i in range(NUM_PIXELS):
-        r, g, b = leds[i]
-        leds[i] = (
-            int(r * tail_decay),
-            int(g * tail_decay),
-            int(b * tail_decay)
+        # Setup SPI and NeoPixel strip
+        self.pixels = neopixel.NeoPixel_SPI(
+            board.SPI(),
+            self.num_pixels,
+            pixel_order=neopixel.GRB,
+            auto_write=False,
+            brightness=1.0
         )
 
+    def fade_tail(self):
+        for i in range(self.num_pixels):
+            r, g, b = self.leds[i]
+            self.leds[i] = (
+                int(r * self.tail_decay),
+                int(g * self.tail_decay),
+                int(b * self.tail_decay)
+            )
 
-def draw_frame():
-    for i, color in enumerate(leds):
-        pixels[i] = color
-    pixels.show()
+    def draw_frame(self):
+        for i, color in enumerate(self.leds):
+            self.pixels[i] = color
+        self.pixels.show()
 
+    def run(self):
+        self.running = True
+        while self.running:
+            for pos in range(self.num_pixels):
+                if not self.running:
+                    break
+                self.fade_tail()
+                self.leds[pos] = self.color
+                self.draw_frame()
+                time.sleep(self.delay)
 
-if __name__ == "__main__":
-    try:
-        while True:
-            for pos in range(NUM_PIXELS):
-                fade_tail()
-                leds[pos] = dot_color
-                draw_frame()
-                time.sleep(delay)
+    def stop(self):
+        self.running = False
+        self.join()
+        self.clear()
 
-    except KeyboardInterrupt:
-        for i in range(NUM_PIXELS):
-            pixels[i] = (0, 0, 0)
-        pixels.show()
+    def clear(self):
+        self.leds = [(0, 0, 0)] * self.num_pixels
+        self.draw_frame()
+
+if __name__ == '__main__':
+    led = MovingDotLED()
+    led.start()
+    time.sleep(10)
+    led.stop()

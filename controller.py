@@ -4,6 +4,8 @@ import logging
 from pymavlink import mavutil
 import time
 
+from led import MovingDotLED
+
 BLUE = "\033[94m"
 RESET = "\033[0m"
 
@@ -308,6 +310,7 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--test-motors", action="store_true")
     arg_parser.add_argument("--reboot", action="store_true")
+    arg_parser.add_argument("--led", action="store_true")
     args = arg_parser.parse_args()
 
     c = Controller()
@@ -326,6 +329,10 @@ if __name__ == "__main__":
     c.set_mode('GUIDED')
 
     c.arm_with_retry()
+    if args.led:
+        led = MovingDotLED()
+        led.start()
+
     time.sleep(5)
 
     c.takeoff(1.0)
@@ -334,3 +341,7 @@ if __name__ == "__main__":
 
     time.sleep(15)
     c.disarm()
+
+    if args.led:
+        led = MovingDotLED()
+        led.stop()
