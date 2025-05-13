@@ -4,52 +4,37 @@ import neopixel_spi as neopixel
 
 NUM_PIXELS = 46
 PIXEL_ORDER = neopixel.GRB
-COLORS = (0xFF0000, 0x00FF00, 0x0000FF)
-DELAY = 0.1
-LENGTH = 5
-
 spi = board.SPI()
 
 pixels = neopixel.NeoPixel_SPI(
-    spi, NUM_PIXELS, pixel_order=PIXEL_ORDER, auto_write=False
+    spi, NUM_PIXELS, pixel_order=PIXEL_ORDER, auto_write=False, brightness=1.0
 )
 
+# Parameters
+dot_color = (255, 0, 0)  # Red dot
+tail_decay = 0.85        # How quickly the tail fades (0.0–1.0)
+delay = 0.02             # Time between frames
 
-# pixels.fill((0,0,0))
-def rgb_to_hex_int(r, g, b):
-    return (r << 16) | (g << 8) | b
+# Initialize an array of RGB values (like a framebuffer)
+leds = [(0, 0, 0)] * NUM_PIXELS
 
-
-if __name__ == "__main__":
-    base_color = (227, 253, 255)
-    colors = []
-
-    for i in range(LENGTH):
-        brightness = (LENGTH - i) / LENGTH
-        colors.append(rgb_to_hex_int(
-            int(base_color[0] * brightness),
-            int(base_color[1] * brightness),
-            int(base_color[2] * brightness))
+def fade_tail():
+    for i in range(NUM_PIXELS):
+        r, g, b = leds[i]
+        leds[i] = (
+            int(r * tail_decay),
+            int(g * tail_decay),
+            int(b * tail_decay)
         )
 
-    # print(colors)
+def draw_frame():
+    for i, color in enumerate(leds):
+        pixels[i] = color
+    pixels.show()
 
-    # colors = [
-    #     rgb_to_hex_int(255,0,0),
-    #     rgb_to_hex_int(0,255,0),
-    #     rgb_to_hex_int(0,0,255),
-    #     rgb_to_hex_int(255,0,255),
-    #     rgb_to_hex_int(255,255,0),
-    # ]
-
-    try:
-        while True:
-            for i in range(NUM_PIXELS):
-                for j in range(LENGTH):
-                    pixels[(i+j) % NUM_PIXELS] = colors[j]
-                    print(colors[j])
-                pixels.show()
-                time.sleep(DELAY)
-                pixels.fill(0)
-    finally:
-        pixels.fill((0, 0, 0))
+while True:
+    for pos in range(NUM_PIXELS):
+        fade_tail()
+        leds[pos] = dot_color
+        draw_frame()
+        time.sleep(delay)
