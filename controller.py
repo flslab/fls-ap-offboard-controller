@@ -56,19 +56,19 @@ class Controller:
 
         time.sleep(2)
 
-        # self.logger.info("Setting up data streams...")
-        # for i in range(0, 3):  # Try a few times to make sure it gets through
-        #     self.master.mav.request_data_stream_send(
-        #         self.master.target_system,
-        #         self.master.target_component,
-        #         mavutil.mavlink.MAV_DATA_STREAM_ALL,
-        #         4,  # 4 Hz
-        #         1  # Start sending
-        #     )
-        #     time.sleep(0.5)
-        #
-        # self.logger.info("Waiting for system initialization...")
-        # time.sleep(3)
+        self.logger.info("Setting up data streams...")
+        for i in range(0, 3):  # Try a few times to make sure it gets through
+            self.master.mav.request_data_stream_send(
+                self.master.target_system,
+                self.master.target_component,
+                mavutil.mavlink.MAV_DATA_STREAM_ALL,
+                4,  # 4 Hz
+                1  # Start sending
+            )
+            time.sleep(0.5)
+
+        self.logger.info("Waiting for system initialization...")
+        time.sleep(3)
 
     def reboot(self):
         self.master.mav.command_long_send(
