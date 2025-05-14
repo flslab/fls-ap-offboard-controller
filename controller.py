@@ -287,6 +287,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--reboot", action="store_true")
     arg_parser.add_argument("--led", action="store_true")
     arg_parser.add_argument("--land", action="store_true")
+    arg_parser.add_argument("--status", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
     arg_parser.add_argument("--voltage", type=float, default=7.35)
     args = arg_parser.parse_args()
@@ -306,9 +307,13 @@ if __name__ == "__main__":
 
     c.request_data()
 
+    if args.status:
+        c.watch_battery()
+        exit()
+
     if args.test_motors:
         c.test_motors()
-        time.sleep(5)
+        exit()
 
     c.set_mode('GUIDED')
 
