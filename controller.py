@@ -5,27 +5,7 @@ from pymavlink import mavutil
 import time
 
 from led import MovingDotLED
-
-BLUE = "\033[94m"
-RESET = "\033[0m"
-
-
-def create_logger(name, level=logging.INFO):
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-
-    logger.propagate = False
-
-    ch = logging.StreamHandler()
-    ch.setLevel(level)
-
-    formatter = logging.Formatter(BLUE + '%(name)s - %(levelname)s - %(message)s' + RESET)
-    ch.setFormatter(formatter)
-
-    if not logger.hasHandlers():
-        logger.addHandler(ch)
-
-    return logger
+from log import LoggerFactory
 
 
 class Controller:
@@ -33,7 +13,7 @@ class Controller:
         self.device = device
         self.baudrate = baudrate
         self.master = None
-        self.logger = create_logger("Controller")
+        self.logger = LoggerFactory("Controller", level=logging.DEBUG).get_logger()
         self.is_armed = False
         self.connected = False
         self.flight_duration = flight_duration
