@@ -336,11 +336,11 @@ if __name__ == "__main__":
     time.sleep(5)
 
     c.takeoff(1.0)
-    time.sleep(15)
-    c.land()
-
-    time.sleep(10)
-    c.disarm()
-
-    if args.led:
-        led.stop()
+    # time.sleep(15)
+    # c.land()
+    #
+    # time.sleep(10)
+    # c.disarm()
+    #
+    # if args.led:
+    #     led.stop()
