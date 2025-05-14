@@ -306,6 +306,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--test-motors", action="store_true")
     arg_parser.add_argument("--reboot", action="store_true")
     arg_parser.add_argument("--led", action="store_true")
+    arg_parser.add_argument("--land", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
     arg_parser.add_argument("--voltage", type=float, default=7.0)
     args = arg_parser.parse_args()
@@ -315,6 +316,12 @@ if __name__ == "__main__":
 
     if args.reboot:
         c.reboot()
+        exit()
+
+    if args.land:
+        c.land()
+        time.sleep(10)
+        c.disarm()
         exit()
 
     c.request_data()
