@@ -308,7 +308,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--led", action="store_true")
     arg_parser.add_argument("--land", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
-    arg_parser.add_argument("--voltage", type=float, default=7.25)
+    arg_parser.add_argument("--voltage", type=float, default=7.35)
     args = arg_parser.parse_args()
 
     c = Controller(flight_duration=args.duration, voltage_threshold=args.voltage)
