@@ -29,13 +29,15 @@ def create_logger(name, level=logging.INFO):
 
 
 class Controller:
-    def __init__(self, device="/dev/ttyAMA0", baudrate=57600):
+    def __init__(self, device="/dev/ttyAMA0", baudrate=57600, flight_duration=15, voltage_threshold=7.0):
         self.device = device
         self.baudrate = baudrate
         self.master = None
         self.logger = create_logger("Controller")
         self.is_armed = False
         self.connected = False
+        self.flight_duration = flight_duration
+        self.voltage_threshold = voltage_threshold
 
     def connect(self):
         self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
@@ -274,36 +276,29 @@ class Controller:
             self.send_motor_test(i+1, throttle_type=0, throttle_value=10, duration=1)
             time.sleep(0.25)
 
-    #
-        # # Wait for ACK
-        # ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
-        # if ack:
-        #     self.mode = mode
-        #     self.logger.info(f"Mode changed to {mode}")
-        #     return True
-        # else:
-        #     self.logger.error(f"Failed to change mode to {mode}")
-        #     return False
+    def watch_battery(self):
+        start = time.perf_counter()
 
-    # # Wait until near 1 meter (or timeout)
-    # print("Waiting to reach target altitude...")
-    # start_time = time.time()
-    # while True:
-    #     msg = master.recv_match(type='GLOBAL_POSITION_INT', blocking=True, timeout=5)
-    #     if msg:
-    #         alt = msg.relative_alt / 1000.0  # mm to meters
-    #         print(f"Altitude: {alt:.2f}m")
-    #         if alt > 0.95:
-    #             print("Target altitude reached")
-    #             break
-    #     if time.time() - start_time > 20:
-    #         print("Timeout while waiting for altitude")
-    #         break
-    #
-    # # Wait a bit before landing
-    # time.sleep(3)
-    # land()
-    # print("Mission complete.")
+        while True:
+            elapsed = time.perf_counter() - start
+
+            if 0 < self.flight_duration <= elapsed:
+                break
+
+            msg = self.master.recv_match(type=['BATTERY_STATUS'], blocking=True, timeout=1)
+            voltage = current = 'N/A'
+
+            if msg:
+                if msg.get_type() == 'BATTERY_STATUS':
+                    voltage_raw = msg.voltages[0]
+                    voltage = voltage_raw / 1000.0 if voltage_raw != 65535 else 'N/A'
+                    current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
+
+                    if isinstance(voltage, float) and voltage < self.voltage_threshold:
+                        self.logger.info(f"Attempt to land due to low battery.")
+                        break
+
+            self.logger.info(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
 
 
 if __name__ == "__main__":
@@ -311,9 +306,11 @@ if __name__ == "__main__":
     arg_parser.add_argument("--test-motors", action="store_true")
     arg_parser.add_argument("--reboot", action="store_true")
     arg_parser.add_argument("--led", action="store_true")
+    arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
+    arg_parser.add_argument("--voltage", type=float, default=7.0)
     args = arg_parser.parse_args()
 
-    c = Controller()
+    c = Controller(flight_duration=args.duration, voltage_threshold=args.voltage)
     c.connect()
 
     if args.reboot:
@@ -336,11 +333,13 @@ if __name__ == "__main__":
     time.sleep(5)
 
     c.takeoff(1.0)
-    # time.sleep(15)
-    # c.land()
-    #
-    # time.sleep(10)
-    # c.disarm()
-    #
-    # if args.led:
-    #     led.stop()
+
+    c.watch_battery()
+
+    c.land()
+
+    time.sleep(10)
+    c.disarm()
+
+    if args.led:
+        led.stop()
