@@ -295,7 +295,7 @@ class Controller:
                     current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
 
                     if isinstance(voltage, float) and voltage < self.voltage_threshold:
-                        self.logger.info(f"Attempt to land due to low battery.")
+                        self.logger.warning(f"Failsafe triggered due to low battery.")
                         break
 
             self.logger.info(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
