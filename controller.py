@@ -29,7 +29,7 @@ def create_logger(name, level=logging.INFO):
 
 
 class Controller:
-    def __init__(self, device="/dev/ttyAMA0", baudrate=57600, flight_duration=15, voltage_threshold=7.0):
+    def __init__(self, flight_duration, voltage_threshold, device="/dev/ttyAMA0", baudrate=57600):
         self.device = device
         self.baudrate = baudrate
         self.master = None
@@ -308,7 +308,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--led", action="store_true")
     arg_parser.add_argument("--land", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
-    arg_parser.add_argument("--voltage", type=float, default=7.0)
+    arg_parser.add_argument("--voltage", type=float, default=7.25)
     args = arg_parser.parse_args()
 
     c = Controller(flight_duration=args.duration, voltage_threshold=args.voltage)
