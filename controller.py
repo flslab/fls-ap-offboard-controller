@@ -311,7 +311,7 @@ class Controller:
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
         """
-        self.logger.log(f"Sending {x} {y} {z}")
+        self.logger.debug(f"Sending {x} {y} {z}")
         self.master.mav.set_position_target_local_ned_send(
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
