@@ -316,7 +316,7 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b0000111111000111,  # only x, y, z position
+            0b110111111000,  # only x, y, z position
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
@@ -397,7 +397,7 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
-    c.set_mode('GUIDED_NOGPS')
+    c.set_mode('GUIDED')
 
     c.arm_with_retry()
     if args.led:
