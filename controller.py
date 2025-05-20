@@ -353,7 +353,7 @@ class Controller:
         for j in range(5):
             for i in range(point_count):
                 self.send_waypoint_message(x[i], y[i], -0.5 - z[i])
-                time.sleep(time_interval)
+                time.sleep(1/10)
 
     def test_trajectory(self):
         self.logger.info("Sending test trajectory")
