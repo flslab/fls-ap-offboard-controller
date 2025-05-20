@@ -275,10 +275,88 @@ class Controller:
                     current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
 
                     if isinstance(voltage, float) and voltage < self.voltage_threshold:
-                        self.logger.warning(f"Failsafe triggered due to low battery.")
+                        self.logger.warning(f"Failsafe triggered due to low battery")
                         break
 
             self.logger.info(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
+
+    def send_trajectory_message(self, point_num, pos, vel, acc, time_horizon):
+        """Send a trajectory setpoint using MAVLink TRAJECTORY message."""
+        # MAV_TRAJECTORY_REPRESENTATION_WAYPOINTS = 0
+        type_mask = 0  # Use position, velocity and acceleration
+
+        # Create the message - using local coordinates since there's no GPS
+        self.master.mav.trajectory_representation_waypoints_send(
+            time_us=int(time.time() * 1000000),  # Current time in microseconds
+            valid_points=1,  # Sending one point at a time
+            pos_x=[pos[0], 0, 0, 0, 0],  # X position in meters (NED frame)
+            pos_y=[pos[1], 0, 0, 0, 0],  # Y position in meters
+            pos_z=[pos[2], 0, 0, 0, 0],  # Z position in meters
+            vel_x=[vel[0], 0, 0, 0, 0],  # X velocity in m/s
+            vel_y=[vel[1], 0, 0, 0, 0],  # Y velocity in m/s
+            vel_z=[vel[2], 0, 0, 0, 0],  # Z velocity in m/s
+            acc_x=[acc[0], 0, 0, 0, 0],  # X acceleration in m/s^2
+            acc_y=[acc[1], 0, 0, 0, 0],  # Y acceleration in m/s^2
+            acc_z=[acc[2], 0, 0, 0, 0],  # Z acceleration in m/s^2
+            pos_yaw=[0, 0, 0, 0, 0],  # Yaw angle in rad
+            vel_yaw=[0, 0, 0, 0, 0],  # Yaw velocity in rad/s
+            command=[mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0],  # Command for each point
+            time_horizon=[time_horizon, 0, 0, 0, 0]  # Time horizon for this point in seconds
+        )
+        self.logger.debug(f"Sent trajectory point {point_num}: Pos={pos}, Vel={vel}, Acc={acc}")
+
+    def send_waypoint_message(self, x, y, z):
+        """
+        Sends waypoints in local NED frame
+        X is forward, Y is right, Z is down with origin fixed relative to ground
+        """
+        self.master.mav.set_position_target_local_ned_send(
+            int(time.time() * 1e6),  # timestamp in microseconds
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            0b0000111111000111,  # position only
+            x, y, z,
+            0, 0, 0,  # velocity
+            0, 0, 0,  # acceleration
+            0, 0  # yaw, yaw_rate
+        )
+
+    def send_trajectory_from_file(self, file_path):
+        """Read and send a trajectory."""
+        import pandas as pd
+        df = pd.read_csv(file_path)
+
+        # Extract coordinates and vectors
+        x = df['x'].values
+        y = df['y'].values
+        z = df['z'].values
+
+        t = df['time'].values
+
+        # vx = df['velocity_x'].values
+        # vy = df['velocity_y'].values
+        # vz = df['velocity_z'].values
+        # speed = df['speed'].values
+        #
+        # ax = df['acceleration_x'].values
+        # ay = df['acceleration_y'].values
+        # az = df['acceleration_z'].values
+        # am = df['acceleration_magnitude'].values
+
+        # Calculate time interval between points
+        time_interval = t[1] - t[0]
+        point_count = len(t)
+
+        # Send each point in the trajectory
+        for i in range(point_count):
+            self.send_waypoint_message(x[i], y[i], -1 - z[i])
+            time.sleep(time_interval)
+
+    def test_trajectory(self):
+        for i in range(60):
+            self.send_waypoint_message(0, 0, -1 - i / 120)
+            time.sleep(1/30)
 
 
 if __name__ == "__main__":
@@ -290,6 +368,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--status", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
     arg_parser.add_argument("--voltage", type=float, default=7.35)
+    arg_parser.add_argument("--trajectory", type=str)
     args = arg_parser.parse_args()
 
     c = Controller(flight_duration=args.duration, voltage_threshold=args.voltage)
@@ -326,7 +405,13 @@ if __name__ == "__main__":
 
     c.takeoff(1.0)
 
-    c.watch_battery()
+    if args.trajectory:
+        time.sleep(10)
+        c.send_trajectory_from_file(args.trajectory)
+    else:
+        time.sleep(10)
+        c.test_trajectory()
+        # c.watch_battery()
 
     c.land()
 
