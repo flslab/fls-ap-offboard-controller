@@ -425,7 +425,7 @@ if __name__ == "__main__":
         c.send_trajectory_from_file(args.trajectory)
     else:
         time.sleep(10)
-        c.test_trajectory()
+        c.test_s_trajectory()
         # c.watch_battery()
 
     c.land()
