@@ -370,7 +370,7 @@ class Controller:
 
         for point in points:
             for i in range(10):
-                self.send_waypoint_message((point[0] - 0.6)/4, 0, -1 - (point[1] - 1.7)/4)
+                self.send_waypoint_message((point[0] - 0.6)/2, 0, -1 - (point[1] - 1.7)/4)
                 time.sleep(1/10)
 
 
