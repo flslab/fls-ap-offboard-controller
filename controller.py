@@ -397,7 +397,7 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
-    c.set_mode('GUIDED')
+    c.set_mode('GUIDED_NOGPS')
 
     c.arm_with_retry()
     if args.led:
