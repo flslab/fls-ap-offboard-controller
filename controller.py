@@ -18,6 +18,7 @@ class Controller:
         self.connected = False
         self.flight_duration = flight_duration
         self.voltage_threshold = voltage_threshold
+        self.start_time = time.time()
 
     def connect(self):
         self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
@@ -311,11 +312,11 @@ class Controller:
         X is forward, Y is right, Z is down with origin fixed relative to ground
         """
         self.master.mav.set_position_target_local_ned_send(
-            int(time.time() * 1e6),  # timestamp in microseconds
+            int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b0000111111000111,  # position only
+            0b0000111111000111,  # only x, y, z position
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
