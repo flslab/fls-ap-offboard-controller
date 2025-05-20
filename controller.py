@@ -362,6 +362,16 @@ class Controller:
             time.sleep(1/10)
         self.logger.info("Trajectory completed")
 
+    def test_s_trajectory(self):
+        self.logger.info("Sending")
+        points = [(0.6, 1.7, 0), (0.35, 2, 0), (0, 1.7, 0), (0.15, 1.2, 0), (0.35, 1, 0),
+         (0.55, .8, 0), (0.7, 0.3, 0), (0.35, 0, 0), (0.1, 0.3, 0)]
+
+        for point in points:
+            for i in range(10):
+                self.send_waypoint_message((point[0] - 0.6)/4, 0, -1 - (point[1] - 1.7)/4)
+                time.sleep(1/10)
+
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
@@ -407,7 +417,7 @@ if __name__ == "__main__":
 
     time.sleep(5)
 
-    c.takeoff(0.5)
+    c.takeoff(1.0)
 
     if args.trajectory:
         time.sleep(10)
