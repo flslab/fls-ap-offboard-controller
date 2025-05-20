@@ -351,14 +351,14 @@ class Controller:
 
         # Send each point in the trajectory
         for i in range(point_count):
-            self.send_waypoint_message(x[i], y[i], -1 - z[i])
+            self.send_waypoint_message(x[i], y[i], -0.5 - z[i])
             time.sleep(time_interval)
 
     def test_trajectory(self):
         self.logger.info("Sending test trajectory")
         for i in range(60):
-            self.send_waypoint_message(0, 0, -1 - i / 120)
-            time.sleep(1/30)
+            self.send_waypoint_message(0, 0, -0.5 - i / 120)
+            time.sleep(1/10)
         self.logger.info("Trajectory completed")
 
 
@@ -406,7 +406,7 @@ if __name__ == "__main__":
 
     time.sleep(5)
 
-    c.takeoff(1.0)
+    c.takeoff(0.5)
 
     if args.trajectory:
         time.sleep(10)
