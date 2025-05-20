@@ -355,9 +355,11 @@ class Controller:
             time.sleep(time_interval)
 
     def test_trajectory(self):
+        self.logger.info("Sending test trajectory")
         for i in range(60):
             self.send_waypoint_message(0, 0, -1 - i / 120)
             time.sleep(1/30)
+        self.logger.info("Trajectory completed")
 
 
 if __name__ == "__main__":
