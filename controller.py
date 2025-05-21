@@ -225,7 +225,14 @@ class Controller:
             0, 0, 0, 0, 0
         )
 
-        print(self.master.wait_heartbeat())
+        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
+        if ack:
+            self.logger.info(f"Mode changed to {mode}")
+            print(self.master.wait_heartbeat())
+            return True
+        else:
+            self.logger.error(f"Failed to change mode to {mode}")
+            return False
 
     def send_motor_test(self, motor_index, throttle_type, throttle_value, duration):
         self.master.mav.command_long_send(
