@@ -447,6 +447,8 @@ if __name__ == "__main__":
 
     c.takeoff(1.0)
 
+    time.sleep(10)
+
     c.circular_trajectory()
 
     # if args.trajectory:
