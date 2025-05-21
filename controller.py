@@ -1,8 +1,9 @@
 import argparse
 import logging
+import time
+import math
 
 from pymavlink import mavutil
-import time
 
 from led import MovingDotLED
 from log import LoggerFactory
@@ -306,7 +307,7 @@ class Controller:
         )
         self.logger.debug(f"Sent trajectory point {point_num}: Pos={pos}, Vel={vel}, Acc={acc}")
 
-    def send_waypoint_message(self, x, y, z):
+    def send_position_target(self, x, y, z):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
@@ -353,13 +354,13 @@ class Controller:
         # Send each point in the trajectory
         for j in range(2):
             for i in range(point_count):
-                self.send_waypoint_message(x[i] - x[0], y[i] - y[0], -1 - z[i])
+                self.send_position_target(x[i] - x[0], y[i] - y[0], -1 - z[i])
                 time.sleep(1/10)
 
     def test_trajectory(self):
         self.logger.info("Sending test trajectory")
         for i in range(60):
-            self.send_waypoint_message(0, 0, -1)
+            self.send_position_target(0, 0, -1)
             time.sleep(1/10)
         self.logger.info("Trajectory completed")
 
@@ -370,8 +371,26 @@ class Controller:
 
         for point in points:
             for i in range(10):
-                self.send_waypoint_message((point[0] - 0.6)/2, 0, -1 - (point[1] - 1.7)/4)
+                self.send_position_target((point[0] - 0.6) / 2, 0, -1 - (point[1] - 1.7) / 4)
                 time.sleep(1/10)
+
+    def circular_trajectory(self):
+        radius = 0.5  # 1m diameter
+        center_x = 0
+        center_y = 0
+        altitude = -1.0  # NED frame: -1 means 1 meter above ground
+        frequency = 20  # Hz
+        period = 6  # seconds per revolution
+        angular_velocity = 2 * math.pi / period
+
+        start_time = time.time()
+        while True:
+            t = time.time() - start_time
+            x = center_x + radius * math.cos(angular_velocity * t)
+            y = center_y + radius * math.sin(angular_velocity * t)
+            z = altitude
+            self.send_position_target(x, y, z)
+            time.sleep(1 / frequency)
 
     def stop(self):
         self.land()
@@ -427,6 +446,8 @@ if __name__ == "__main__":
     time.sleep(5)
 
     c.takeoff(1.0)
+
+    c.circular_trajectory()
 
     # if args.trajectory:
     #     time.sleep(10)
