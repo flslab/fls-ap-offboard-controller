@@ -373,13 +373,16 @@ class Controller:
         center_y = 0
         altitude = -1.0  # NED frame: -1 means 1 meter above ground
         frequency = 20  # Hz
-        period = 5  # seconds per revolution
+        period = 3  # seconds per revolution
         angular_velocity = 2 * math.pi / period
 
         start_time = time.time()
 
         while not self.battery_low:
             t = time.time() - start_time
+            if 0 < self.flight_duration <= t:
+                break
+
             x = center_x + radius * math.cos(angular_velocity * t)
             y = center_y + radius * math.sin(angular_velocity * t)
             z = altitude
