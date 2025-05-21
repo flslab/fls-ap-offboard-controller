@@ -371,7 +371,7 @@ class Controller:
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
-                    time.sleep(1/10)
+                    time.sleep(1/30)
 
     def circular_trajectory(self):
         radius = 0.5  # 1m diameter
