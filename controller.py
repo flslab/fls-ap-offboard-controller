@@ -373,6 +373,14 @@ class Controller:
                 self.send_waypoint_message((point[0] - 0.6)/2, 0, -1 - (point[1] - 1.7)/4)
                 time.sleep(1/10)
 
+    def stop(self):
+        self.land()
+        time.sleep(10)
+        self.disarm()
+
+        if args.led:
+            led.stop()
+
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
@@ -420,18 +428,12 @@ if __name__ == "__main__":
 
     c.takeoff(1.0)
 
-    if args.trajectory:
-        time.sleep(10)
-        c.send_trajectory_from_file(args.trajectory)
-    else:
-        time.sleep(10)
-        c.test_s_trajectory()
-        # c.watch_battery()
-
-    c.land()
-
-    time.sleep(10)
-    c.disarm()
-
-    if args.led:
-        led.stop()
+    # if args.trajectory:
+    #     time.sleep(10)
+    #     c.send_trajectory_from_file(args.trajectory)
+    # else:
+    #     time.sleep(10)
+    #     c.test_s_trajectory()
+    #     # c.watch_battery()
+    #
+    # c.stop()
