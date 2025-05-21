@@ -226,9 +226,9 @@ class Controller:
         )
 
         ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
-        if ack:
+        heartbeat = self.master.wait_heartbeat()
+        if ack and heartbeat["custom_mode"] == mode_id:
             self.logger.info(f"Mode changed to {mode}")
-            print(self.master.wait_heartbeat())
             return True
         else:
             self.logger.error(f"Failed to change mode to {mode}")
