@@ -367,11 +367,11 @@ class Controller:
 
         for j in range(10):
             for point in points:
-                for i in range(30):
+                for i in range(20):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
-                    time.sleep(1/30)
+                    time.sleep(1/20)
 
     def circular_trajectory(self):
         radius = 0.5  # 1m diameter
@@ -430,7 +430,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--status", action="store_true")
     arg_parser.add_argument("--debug", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
-    arg_parser.add_argument("--voltage", type=float, default=7.35)
+    arg_parser.add_argument("--voltage", type=float, default=7.4)
     arg_parser.add_argument("--trajectory", type=str)
     args = arg_parser.parse_args()
 
