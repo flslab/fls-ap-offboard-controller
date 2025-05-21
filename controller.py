@@ -10,11 +10,11 @@ from log import LoggerFactory
 
 
 class Controller:
-    def __init__(self, flight_duration, voltage_threshold, device="/dev/ttyAMA0", baudrate=57600):
+    def __init__(self, flight_duration, voltage_threshold, log_level=logging.INFO, device="/dev/ttyAMA0", baudrate=57600):
         self.device = device
         self.baudrate = baudrate
         self.master = None
-        self.logger = LoggerFactory("Controller", level=logging.DEBUG).get_logger()
+        self.logger = LoggerFactory("Controller", level=log_level).get_logger()
         self.is_armed = False
         self.connected = False
         self.flight_duration = flight_duration
@@ -408,12 +408,14 @@ if __name__ == "__main__":
     arg_parser.add_argument("--led", action="store_true")
     arg_parser.add_argument("--land", action="store_true")
     arg_parser.add_argument("--status", action="store_true")
+    arg_parser.add_argument("--debug", action="store_true")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
     arg_parser.add_argument("--voltage", type=float, default=7.35)
     arg_parser.add_argument("--trajectory", type=str)
     args = arg_parser.parse_args()
 
-    c = Controller(flight_duration=args.duration, voltage_threshold=args.voltage)
+    log_level = logging.DEBUG if args.debug else logging.INFO
+    c = Controller(log_level=log_level, flight_duration=args.duration, voltage_threshold=args.voltage)
     c.connect()
 
     if args.reboot:
