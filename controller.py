@@ -347,7 +347,9 @@ class Controller:
         # Send each point in the trajectory
         for j in range(2):
             for i in range(point_count):
-                self.send_position_target(x[i] - x[0], y[i] - y[0], -1 - z[i])
+                if self.battery_low:
+                    return
+                self.send_position_target(x[i] - x[0], z[i] - z[0], -1 - y[i])
                 time.sleep(1/10)
 
     def test_trajectory(self):
@@ -396,7 +398,7 @@ class Controller:
         c.takeoff(1.0)
         time.sleep(5)
 
-        flight_thread = Thread(target=self.circular_trajectory)
+        flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
 
         battery_thread.start()
         flight_thread.start()
@@ -451,9 +453,12 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
-    c.set_mode('GUIDED')
+    if not c.set_mode('GUIDED'):
+        exit()
 
-    c.arm_with_retry()
+    if not c.arm_with_retry():
+        exit()
+
     if args.led:
         led = MovingDotLED()
         led.start()
