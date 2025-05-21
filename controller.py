@@ -2,6 +2,7 @@ import argparse
 import logging
 import time
 import math
+from threading import Thread
 
 from pymavlink import mavutil
 
@@ -20,6 +21,8 @@ class Controller:
         self.flight_duration = flight_duration
         self.voltage_threshold = voltage_threshold
         self.start_time = time.time()
+        self.battery_low = False
+        self.running = False
 
     def connect(self):
         self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
@@ -61,21 +64,6 @@ class Controller:
             1,  # param1: 1=reboot autopilot
             0, 0, 0, 0, 0, 0  # unused parameters
         )
-
-    def set_guided_mode(self):
-        mode = 'GUIDED'
-        self.logger.info(f"Setting mode to {mode}")
-        mode_id = self.master.mode_mapping()[mode]
-        self.master.mav.set_mode_send(
-            self.master.target_system,
-            mavutil.mavlink.MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
-            mode_id)
-        ack = False
-        while not ack:
-            ack_msg = self.master.recv_match(type='COMMAND_ACK', blocking=True)
-            if ack_msg.command == mavutil.mavlink.MAV_CMD_DO_SET_MODE:
-                self.logger.info(f"{mode} mode set")
-                ack = True
 
     def wait_for_command_ack(self, command, timeout=5):
         """Wait for command acknowledgement"""
@@ -261,11 +249,8 @@ class Controller:
     def watch_battery(self):
         start = time.perf_counter()
 
-        while True:
+        while self.running:
             elapsed = time.perf_counter() - start
-
-            if 0 < self.flight_duration <= elapsed:
-                break
 
             msg = self.master.recv_match(type=['BATTERY_STATUS'], blocking=True, timeout=1)
             voltage = current = 'N/A'
@@ -277,6 +262,7 @@ class Controller:
                     current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
 
                     if isinstance(voltage, float) and voltage < self.voltage_threshold:
+                        self.battery_low = True
                         self.logger.warning(f"Failsafe triggered due to low battery")
                         break
 
@@ -380,17 +366,30 @@ class Controller:
         center_y = 0
         altitude = -1.0  # NED frame: -1 means 1 meter above ground
         frequency = 20  # Hz
-        period = 6  # seconds per revolution
+        period = 5  # seconds per revolution
         angular_velocity = 2 * math.pi / period
 
         start_time = time.time()
-        while True:
+
+        while not self.battery_low:
             t = time.time() - start_time
             x = center_x + radius * math.cos(angular_velocity * t)
             y = center_y + radius * math.sin(angular_velocity * t)
             z = altitude
             self.send_position_target(x, y, z)
             time.sleep(1 / frequency)
+
+    def start_flight(self):
+        self.running = True
+        battery_thread = Thread(target=self.watch_battery, daemon=True)
+        flight_thread = Thread(target=self.circular_trajectory)
+
+        battery_thread.start()
+        flight_thread.start()
+
+        flight_thread.join()
+        self.running = False
+        battery_thread.join()
 
     def stop(self):
         self.land()
@@ -444,21 +443,7 @@ if __name__ == "__main__":
     if args.led:
         led = MovingDotLED()
         led.start()
-
     time.sleep(5)
 
-    c.takeoff(1.0)
-
-    time.sleep(10)
-
-    c.circular_trajectory()
-
-    # if args.trajectory:
-    #     time.sleep(10)
-    #     c.send_trajectory_from_file(args.trajectory)
-    # else:
-    #     time.sleep(10)
-    #     c.test_s_trajectory()
-    #     # c.watch_battery()
-    #
-    # c.stop()
+    c.start_flight()
+    c.stop()
