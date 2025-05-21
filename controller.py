@@ -382,6 +382,10 @@ class Controller:
     def start_flight(self):
         self.running = True
         battery_thread = Thread(target=self.watch_battery, daemon=True)
+
+        c.takeoff(1.0)
+        time.sleep(5)
+
         flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
