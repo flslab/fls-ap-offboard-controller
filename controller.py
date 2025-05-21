@@ -363,14 +363,14 @@ class Controller:
         self.logger.info("Sending")
         # points = [(0.6, 1.7, 0), (0.35, 2, 0), (0, 1.7, 0), (0.15, 1.2, 0), (0.35, 1, 0),
         #  (0.55, .8, 0), (0.7, 0.3, 0), (0.35, 0, 0), (0.1, 0.3, 0)]
-        points = [(0, 0, 0), (0.5, 0, 0)]
+        points = [(0, 0, 0), (0, 0, 0.2)]
 
         for j in range(10):
             for point in points:
                 for i in range(10):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], -1)
+                    self.send_position_target(point[0], point[1], -1 - point[2])
                     time.sleep(1/10)
 
     def circular_trajectory(self):
