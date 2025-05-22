@@ -300,21 +300,57 @@ class Controller:
         )
         self.logger.debug(f"Sent trajectory point {point_num}: Pos={pos}, Vel={vel}, Acc={acc}")
 
-    def send_position_target(self, x, y, z, vx=0, vy=0, vz=0):
+    def send_position_target(self, x, y, z):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
         """
-        self.logger.debug(f"Sending {x} {y} {z}")
+        self.logger.debug(f"Sending position {x} {y} {z}")
         self.master.mav.set_position_target_local_ned_send(
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
-            0b100111111000,  # only x, y, z position and yaw
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            0b110111111000,  # only x, y, z position and yaw
             x, y, z,
+            0, 0, 0,  # velocity
+            0, 0, 0,  # acceleration
+            0, 0  # yaw, yaw_rate
+        )
+
+    def send_velocity_target(self, vx, vy, vz):
+        """
+        Sends waypoints in local NED frame
+        X is forward, Y is right, Z is down with origin fixed relative to ground
+        """
+        self.logger.debug(f"Sending velocity {vx} {vy} {vz}")
+        self.master.mav.set_position_target_local_ned_send(
+            int((time.time() - self.start_time) * 1000),  # milliseconds since start
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            0b110111000111,  # only x, y, z position and yaw
+            0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
+            0, 0  # yaw, yaw_rate
+        )
+
+    def send_acceleration_target(self, ax, ay, az):
+        """
+        Sends waypoints in local NED frame
+        X is forward, Y is right, Z is down with origin fixed relative to ground
+        """
+        self.logger.debug(f"Sending acceleration {ax} {ay} {az}")
+        self.master.mav.set_position_target_local_ned_send(
+            int((time.time() - self.start_time) * 1000),  # milliseconds since start
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            0b110000111111,  # only x, y, z position and yaw
+            0, 0, 0,
+            0, 0, 0,  # velocity
+            ax, ay, az,  # acceleration
             0, 0  # yaw, yaw_rate
         )
 
@@ -354,14 +390,14 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(0, 0, 0, 0, 0, 0), (x, y, z, 0, 0, 0), (0, 0, 0, 0, 0, 0)]
+        points = [(0, 0, 0), (x, y, z), (0, 0, 0)]
 
         for j in range(1):
             for point in points:
                 for i in range(20):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], -1 - point[2], point[3], point[4], point[5])
+                    self.send_velocity_target(point[0], point[1], -1 - point[2])
                     time.sleep(1 / 20)
 
     def test_s_trajectory(self):
