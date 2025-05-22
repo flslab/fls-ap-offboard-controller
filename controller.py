@@ -354,11 +354,11 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(x, y, z), (0, 0, 0)]
+        points = [(0, 0, 0), (x, y, z), (0, 0, 0)]
 
         for j in range(1):
             for point in points:
-                for i in range(20):
+                for i in range(40):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
