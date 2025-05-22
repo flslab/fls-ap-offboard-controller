@@ -315,7 +315,7 @@ class Controller:
             x, y, z,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            0, 0  # yaw, yaw_rate
+            1.57, 0  # yaw, yaw_rate
         )
 
     def send_trajectory_from_file(self, file_path):
