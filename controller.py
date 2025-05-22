@@ -396,17 +396,17 @@ class Controller:
 
         for j in range(1):
             for point in points:
-                for i in range(30):
+                for i in range(200):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 20)
 
-        for i in range(30):
-            if self.battery_low:
-                return
-            self.send_velocity_target(0, 0, 0)
-            time.sleep(1 / 20)
+        # for i in range(30):
+        #     if self.battery_low:
+        #         return
+        #     self.send_velocity_target(0, 0, 0)
+        #     time.sleep(1 / 20)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
