@@ -356,9 +356,9 @@ class Controller:
         self.logger.info("Sending")
         points = [(x, y, z), (0, 0, 0)]
 
-        for j in range(1):
+        for j in range(10):
             for point in points:
-                for i in range(200):
+                for i in range(20):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
@@ -408,8 +408,8 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 1))
-        flight_thread = Thread(target=self.circular_trajectory)
+        flight_thread = Thread(target=self.test_trajectory, args=(0.5, 0, 0))
+        # flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
         flight_thread.start()
