@@ -394,7 +394,7 @@ class Controller:
 
         for j in range(1):
             for point in points:
-                for i in range(15):
+                for i in range(25):
                     if self.battery_low:
                         return
                     self.send_velocity_target(point[0], point[1], point[2])
