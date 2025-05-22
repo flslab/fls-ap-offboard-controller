@@ -315,7 +315,7 @@ class Controller:
             x, y, z,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            1.57, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_trajectory_from_file(self, file_path):
@@ -354,11 +354,11 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(0, 0, 0, 0, 0, 0), (x, y, z, 0, 10, 0), (0, 0, 0, 0, 0, 0)]
+        points = [(0, 0, 0, 0, 0, 0), (x, y, z, 0, 0, 0), (0, 0, 0, 0, 0, 0)]
 
         for j in range(1):
             for point in points:
-                for i in range(40):
+                for i in range(20):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2], point[3], point[4], point[5])
@@ -408,7 +408,7 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(0, 2, 0))
+        flight_thread = Thread(target=self.test_trajectory, args=(2, 0, 0))
         # flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
