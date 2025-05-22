@@ -346,7 +346,7 @@ class Controller:
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
             0b110000111111,  # only acceleration and yaw
             0, 0, 0,
             0, 0, 0,  # velocity
