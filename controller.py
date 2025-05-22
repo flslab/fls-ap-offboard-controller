@@ -329,7 +329,7 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b110111000111,  # only x, y, z position and yaw
+            0b110111000111,  # only velocity and yaw
             0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
@@ -347,7 +347,7 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b110000111111,  # only x, y, z position and yaw
+            0b110000111111,  # only acceleration and yaw
             0, 0, 0,
             0, 0, 0,  # velocity
             ax, ay, az,  # acceleration
@@ -390,11 +390,11 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(0, 0, 0), (x, y, z), (0, 0, 0)]
+        points = [(x, y, z), (0, 0, 0)]
 
         for j in range(1):
             for point in points:
-                for i in range(20):
+                for i in range(30):
                     if self.battery_low:
                         return
                     self.send_velocity_target(point[0], point[1], -1 - point[2])
