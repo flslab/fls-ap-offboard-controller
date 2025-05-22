@@ -310,12 +310,12 @@ class Controller:
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
             0b100111111000,  # only x, y, z position and yaw
             x, y, z,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            1.57, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_trajectory_from_file(self, file_path):
