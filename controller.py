@@ -311,9 +311,9 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b100111111000,  # only x, y, z position and yaw
+            0b100111000000,  # only x, y, z position and yaw
             x, y, z,
-            0, 0, 0,  # velocity
+            0, 10, 0,  # velocity
             0, 0, 0,  # acceleration
             0, 0  # yaw, yaw_rate
         )
@@ -408,7 +408,7 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(0, 1, 0))
+        flight_thread = Thread(target=self.test_trajectory, args=(0, 2, 0))
         # flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
