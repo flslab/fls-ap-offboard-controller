@@ -315,7 +315,7 @@ class Controller:
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            1.57, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_trajectory_from_file(self, file_path):
@@ -408,7 +408,7 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(1, 0, 0))
+        flight_thread = Thread(target=self.test_trajectory, args=(0, 1, 0))
         # flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
