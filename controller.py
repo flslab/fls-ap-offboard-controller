@@ -408,7 +408,8 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 1))
+        # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 1))
+        flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
         flight_thread.start()
