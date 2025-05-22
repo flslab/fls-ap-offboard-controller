@@ -352,22 +352,27 @@ class Controller:
                 self.send_position_target(x[i]*3 - x[0]*3, z[i]*3 - z[0]*3, -1 - y[i]*3)
                 time.sleep(1/10)
 
-    def test_trajectory(self):
-        self.logger.info("Sending test trajectory")
-        for i in range(60):
-            self.send_position_target(0, 0, -1)
-            time.sleep(1/10)
-        self.logger.info("Trajectory completed")
+    def test_trajectory(self, x=0, y=0, z=0):
+        self.logger.info("Sending")
+        points = [(x, y, z), (0, 0, 0)]
+
+        for j in range(1):
+            for point in points:
+                for i in range(200):
+                    if self.battery_low:
+                        return
+                    self.send_position_target(point[0], point[1], -1 - point[2])
+                    time.sleep(1 / 20)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
         # points = [(0.6, 1.7, 0), (0.35, 2, 0), (0, 1.7, 0), (0.15, 1.2, 0), (0.35, 1, 0),
         #  (0.55, .8, 0), (0.7, 0.3, 0), (0.35, 0, 0), (0.1, 0.3, 0)]
-        points = [(0, 0, 0), (0.5, 0, 0)]
+        points = [(0, 0, 0), (3, 0, 0)]
 
-        for j in range(10):
+        for j in range(1):
             for point in points:
-                for i in range(20):
+                for i in range(200):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
@@ -403,7 +408,7 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_s_trajectory)
+        flight_thread = Thread(target=self.test_trajectory, args=(3, 0, 0))
 
         battery_thread.start()
         flight_thread.start()
