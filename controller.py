@@ -300,7 +300,7 @@ class Controller:
         )
         self.logger.debug(f"Sent trajectory point {point_num}: Pos={pos}, Vel={vel}, Acc={acc}")
 
-    def send_position_target(self, x, y, z):
+    def send_position_target(self, x, y, z, vx=0, vy=0, vz=0):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
@@ -313,9 +313,9 @@ class Controller:
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
             0b100111000000,  # only x, y, z position and yaw
             x, y, z,
-            0, 10, 0,  # velocity
+            vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            0, 0  # yaw, yaw_rate
+            1.57, 0  # yaw, yaw_rate
         )
 
     def send_trajectory_from_file(self, file_path):
@@ -354,14 +354,14 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(0, 0, 0), (x, y, z), (0, 0, 0)]
+        points = [(0, 0, 0, 0, 0, 0), (x, y, z, 0, 10, 0), (0, 0, 0, 0, 0, 0)]
 
         for j in range(1):
             for point in points:
                 for i in range(40):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], -1 - point[2])
+                    self.send_position_target(point[0], point[1], -1 - point[2], point[3], point[4], point[5])
                     time.sleep(1 / 20)
 
     def test_s_trajectory(self):
