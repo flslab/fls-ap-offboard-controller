@@ -324,13 +324,15 @@ class Controller:
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
+
+        MAV_FRAME_BODY_OFFSET_NED
         """
         self.logger.debug(f"Sending velocity {vx} {vy} {vz}")
         self.master.mav.set_position_target_local_ned_send(
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
             0b110111000111,  # only velocity and yaw
             0, 0, 0,
             vx, vy, vz,  # velocity
