@@ -396,6 +396,12 @@ class Controller:
         self.logger.info("Sending")
         points = [(1, 0, -1), (0, 0, -1)]
 
+        for i in range(20):
+            if self.battery_low:
+                return
+            self.send_position_target(0, 0, -1)
+            time.sleep(1 / 20)
+
         for j in range(10):
             for point in points:
                 for i in range(10):
