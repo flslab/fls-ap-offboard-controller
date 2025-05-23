@@ -392,7 +392,7 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(x, y, z), (0, 0, 0)]
+        points = [(0, 0, 0)]
 
         for j in range(2):
             for point in points:
