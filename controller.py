@@ -312,7 +312,7 @@ class Controller:
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
             0b110111111000,  # only x, y, z position and yaw
             x, y, z,
             0, 0, 0,  # velocity
@@ -392,14 +392,14 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(x, y, z)]
+        points = [(x, y, z), (0, 0, 0)]
 
-        for j in range(1):
+        for j in range(2):
             for point in points:
-                for i in range(200):
+                for i in range(30):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], point[2])
+                    self.send_position_target(point[0], point[1], -1 - point[2])
                     time.sleep(1 / 20)
 
         # for i in range(30):
@@ -452,7 +452,7 @@ class Controller:
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(8, 0, 0))
+        flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 1))
         # flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
