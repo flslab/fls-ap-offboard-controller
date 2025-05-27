@@ -321,7 +321,7 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b000111111000,  # only x, y, z position and yaw
+            0b100111111000,  # only x, y, z position and yaw
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
