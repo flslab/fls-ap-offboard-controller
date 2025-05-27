@@ -12,7 +12,8 @@ from log import LoggerFactory
 
 
 class Controller:
-    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, log_level=logging.INFO, sim=False, device="/dev/ttyAMA0",
+    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, log_level=logging.INFO, sim=False,
+                 device="/dev/ttyAMA0",
                  baudrate=57600):
         self.device = device
         self.baudrate = baudrate
@@ -401,7 +402,7 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(x, y, -self.takeoff_altitude-z), (0, 0, -self.takeoff_altitude)]
+        points = [(x, y, -self.takeoff_altitude - z), (0, 0, -self.takeoff_altitude)]
 
         for j in range(1):
             for point in points:
@@ -454,9 +455,15 @@ class Controller:
         now = datetime.now()
         formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
         if args.localize:
-            c_process = subprocess.Popen(["/home/fls/fls-marker-localization/build/eye", "-t", "20", "--config",
-                                          "/home/fls/fls-marker-localization/build/camera_config.json", "--save-rate",
-                                          "10", "-s", formatted_now, "--brightness", "1"])
+            c_process = subprocess.Popen([
+                "/home/fls/fls-marker-localization/build/eye",
+                "-t", "20",
+                "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
+                "--save-rate", "10",
+                "-s", formatted_now,
+                "--brightness", "1.0",
+                "contrast", "2.0"
+            ])
 
         c.takeoff()
         time.sleep(5)
@@ -491,7 +498,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
     arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
-    arg_parser.add_argument("--voltage", type=float, default=7.4, help="critical battery voltage threshold to land when reached")
+    arg_parser.add_argument("--voltage", type=float, default=7.4,
+                            help="critical battery voltage threshold to land when reached")
     arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     args = arg_parser.parse_args()
@@ -534,6 +542,7 @@ if __name__ == "__main__":
 
     if args.led:
         from led import MovingDotLED
+
         led = MovingDotLED()
         led.start()
 
