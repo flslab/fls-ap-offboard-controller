@@ -1,17 +1,19 @@
 import argparse
 import logging
+import subprocess
 import time
 import math
+from datetime import datetime
 from threading import Thread
 
 from pymavlink import mavutil
 
-from led import MovingDotLED
 from log import LoggerFactory
 
 
 class Controller:
-    def __init__(self, flight_duration, voltage_threshold, log_level=logging.INFO, device="/dev/ttyAMA0", baudrate=57600):
+    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, log_level=logging.INFO, sim=False, device="/dev/ttyAMA0",
+                 baudrate=57600):
         self.device = device
         self.baudrate = baudrate
         self.master = None
@@ -20,12 +22,17 @@ class Controller:
         self.connected = False
         self.flight_duration = flight_duration
         self.voltage_threshold = voltage_threshold
+        self.takeoff_altitude = takeoff_altitude
         self.start_time = time.time()
         self.battery_low = False
         self.running = False
+        self.sim = sim
 
     def connect(self):
-        self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
+        if self.sim:
+            self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14551")
+        else:
+            self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
 
         self.logger.info("Waiting for heartbeat...")
         self.master.wait_heartbeat()
@@ -138,15 +145,15 @@ class Controller:
             return False
 
     # Take off to target altitude (in meters)
-    def takeoff(self, target_altitude):
+    def takeoff(self):
         self.master.mav.command_long_send(
             self.master.target_system, self.master.target_component,
             mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
             0,
             0, 0, 0, 0, 0, 0,
-            target_altitude
+            self.takeoff_altitude
         )
-        self.logger.info(f"Takeoff command sent to {target_altitude} meters")
+        self.logger.info(f"Takeoff command sent to {self.takeoff_altitude} meters")
         ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF)
 
     # Land the drone
@@ -250,7 +257,7 @@ class Controller:
     def test_motors(self):
         self.logger.info("Testing motors")
         for i in range(4):
-            self.send_motor_test(i+1, throttle_type=0, throttle_value=10, duration=1)
+            self.send_motor_test(i + 1, throttle_type=0, throttle_value=10, duration=1)
             time.sleep(0.25)
 
     def watch_battery(self):
@@ -313,7 +320,7 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b110111111000,  # only x, y, z position and yaw
+            0b000111111000,  # only x, y, z position and yaw
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
@@ -333,7 +340,7 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b110111000111,  # only velocity and yaw
+            0b000111000111,  # only velocity and yaw
             0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
@@ -389,42 +396,20 @@ class Controller:
             for i in range(point_count):
                 if self.battery_low:
                     return
-                self.send_position_target(x[i]*3 - x[0]*3, z[i]*3 - z[0]*3, -1 - y[i]*3)
-                time.sleep(1/10)
+                self.send_position_target(x[i] * 3 - x[0] * 3, z[i] * 3 - z[0] * 3, -1 - y[i] * 3)
+                time.sleep(1 / 10)
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(1, 0, -1), (0, 0, -1)]
+        points = [(x, y, -1-z), (0, 0, -1)]
 
-        for i in range(20):
-            if self.battery_low:
-                return
-            self.send_position_target(0, 0, -1)
-            time.sleep(1 / 20)
-
-        for j in range(10):
+        for j in range(1):
             for point in points:
-                for i in range(10):
+                for i in range(20):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 20)
-
-        time.sleep(5)
-
-        for j in range(10):
-            for point in points:
-                for i in range(10):
-                    if self.battery_low:
-                        return
-                    self.send_position_target(point[1], point[0], point[2])
-                    time.sleep(1 / 20)
-
-        # for i in range(30):
-        #     if self.battery_low:
-        #         return
-        #     self.send_velocity_target(0, 0, 0)
-        #     time.sleep(1 / 20)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
@@ -438,7 +423,7 @@ class Controller:
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
-                    time.sleep(1/20)
+                    time.sleep(1 / 20)
 
     def circular_trajectory(self):
         radius = 0.5  # 1m diameter
@@ -466,11 +451,18 @@ class Controller:
         self.running = True
         battery_thread = Thread(target=self.watch_battery, daemon=True)
 
-        c.takeoff(1.0)
+        now = datetime.now()
+        formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
+        if args.localize:
+            c_process = subprocess.Popen(["/home/fls/fls-marker-localization/build/eye", "-t", "20", "--config",
+                                          "/home/fls/fls-marker-localization/build/camera_config.json", "--save-rate",
+                                          "10", "-s", formatted_now])
+
+        c.takeoff()
         time.sleep(5)
 
         # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(1, 0, 0))
+        flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
         # flight_thread = Thread(target=self.circular_trajectory)
 
         battery_thread.start()
@@ -482,8 +474,6 @@ class Controller:
 
     def stop(self):
         self.land()
-        time.sleep(10)
-        self.disarm()
 
         if args.led:
             led.stop()
@@ -491,19 +481,29 @@ class Controller:
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--test-motors", action="store_true")
-    arg_parser.add_argument("--reboot", action="store_true")
-    arg_parser.add_argument("--led", action="store_true")
-    arg_parser.add_argument("--land", action="store_true")
-    arg_parser.add_argument("--status", action="store_true")
-    arg_parser.add_argument("--debug", action="store_true")
-    arg_parser.add_argument("-t", "--duration", type=float, default=15.0)
-    arg_parser.add_argument("--voltage", type=float, default=7.4)
-    arg_parser.add_argument("--trajectory", type=str)
+    arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
+    arg_parser.add_argument("--reboot", action="store_true", help="reboot")
+    arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
+    arg_parser.add_argument("--land", action="store_true", help="land and exit")
+    arg_parser.add_argument("--status", action="store_true", help="show battery voltage and current")
+    arg_parser.add_argument("--debug", action="store_true", help="show debug logs")
+    arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
+    arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
+    arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
+    arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
+    arg_parser.add_argument("--voltage", type=float, default=7.4, help="critical battery voltage threshold to land when reached")
+    arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
+    arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     args = arg_parser.parse_args()
 
     log_level = logging.DEBUG if args.debug else logging.INFO
-    c = Controller(log_level=log_level, flight_duration=args.duration, voltage_threshold=args.voltage)
+    c = Controller(
+        takeoff_altitude=args.takeoff_altitude,
+        sim=args.sim,
+        log_level=log_level,
+        flight_duration=args.duration,
+        voltage_threshold=args.voltage,
+    )
     c.connect()
 
     if args.reboot:
@@ -533,9 +533,10 @@ if __name__ == "__main__":
         exit()
 
     if args.led:
+        from led import MovingDotLED
         led = MovingDotLED()
         led.start()
-    time.sleep(5)
 
+    time.sleep(5)
     c.start_flight()
     c.stop()
