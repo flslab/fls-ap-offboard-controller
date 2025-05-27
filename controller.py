@@ -462,7 +462,7 @@ class Controller:
                 "--save-rate", "10",
                 "-s", formatted_now,
                 "--brightness", "1.0",
-                "contrast", "2.0"
+                "--contrast", "2.0"
             ])
 
         c.takeoff()
