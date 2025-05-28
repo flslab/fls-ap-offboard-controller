@@ -497,7 +497,7 @@ class Controller:
                 "-s", formatted_now,
                 "--brightness", "1.0",
                 "--contrast", "2.0",
-                "--fps", args.fps
+                "--fps", str(args.fps)
             ])
 
             localize_thread.start()
