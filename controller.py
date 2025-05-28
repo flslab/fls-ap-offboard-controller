@@ -1,8 +1,10 @@
 import argparse
 import logging
+import struct
 import subprocess
 import time
 import math
+import mmap
 from datetime import datetime
 from threading import Thread
 
@@ -448,9 +450,41 @@ class Controller:
             self.send_position_target(x, y, z)
             time.sleep(1 / frequency)
 
+    def send_position_estimation(self):
+        position_size = 1 + 7 * 4  # 1 byte + 7 floats (4 bytes each)
+        shm_name = "/pos_shared_mem"
+        shm_fd = open(f"/dev/shm{shm_name}", "r+b")  # Open shared memory
+        shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
+
+        while self.running:
+            data = shm_map[:position_size]  # Read 8 bytes (bool + 7 floats = 1 byte + 28 bytes)
+            # print("raw data:", data)
+            valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
+
+            if valid:
+                x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[1:])
+                self.logger.debug(f"Sending position estimation: ({-y}, {-x}, {0})")
+                usec = int(time.time() * 1e6)
+
+                self.master.mav.vision_position_estimate_send(
+                    usec,  # Timestamp (microseconds)
+                    -y,  # X
+                    -x,  # Y
+                    0,  # Z (down is negative)
+                    0,  # Roll
+                    0,  # Pitch
+                    0  # Yaw
+                )
+            else:
+                pass
+                # print("Invalid data received")
+
+            time.sleep(1 / args.fps)
+
     def start_flight(self):
         self.running = True
         battery_thread = Thread(target=self.watch_battery, daemon=True)
+        localize_thread = Thread(target=self.send_position_estimation)
 
         now = datetime.now()
         formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
@@ -462,9 +496,13 @@ class Controller:
                 "--save-rate", "10",
                 "-s", formatted_now,
                 "--brightness", "1.0",
-                "--contrast", "2.0"
+                "--contrast", "2.0",
+                "--fps", args.fps
             ])
 
+            localize_thread.start()
+
+        time.sleep(5)
         c.takeoff()
         time.sleep(5)
 
@@ -476,8 +514,18 @@ class Controller:
         flight_thread.start()
 
         flight_thread.join()
+        self.land()
+
+        while True:
+            msg = self.master.recv_match(type='HEARTBEAT', blocking=True)
+            if not (msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) != 0:
+                self.logger.info("Vehicle is disarmed")
+                break
+
         self.running = False
         battery_thread.join()
+        if args.localize:
+            localize_thread.join()
 
     def stop(self):
         self.land()
@@ -497,6 +545,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
+    arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate")
     arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
     arg_parser.add_argument("--voltage", type=float, default=7.4,
                             help="critical battery voltage threshold to land when reached")
@@ -546,6 +595,4 @@ if __name__ == "__main__":
         led = MovingDotLED()
         led.start()
 
-    time.sleep(5)
     c.start_flight()
-    c.stop()
