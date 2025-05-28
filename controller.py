@@ -484,23 +484,6 @@ class Controller:
     def start_flight(self):
         self.running = True
         battery_thread = Thread(target=self.watch_battery, daemon=True)
-        localize_thread = Thread(target=self.send_position_estimation)
-
-        now = datetime.now()
-        formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
-        if args.localize:
-            c_process = subprocess.Popen([
-                "/home/fls/fls-marker-localization/build/eye",
-                "-t", "20",
-                "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
-                "--save-rate", "10",
-                "-s", formatted_now,
-                "--brightness", "1.0",
-                "--contrast", "2.0",
-                "--fps", str(args.fps)
-            ])
-
-            localize_thread.start()
 
         time.sleep(5)
         c.takeoff()
@@ -583,6 +566,25 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
+    localize_thread = Thread(target=c.send_position_estimation)
+
+    now = datetime.now()
+    formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
+    if args.localize:
+        c_process = subprocess.Popen([
+            "/home/fls/fls-marker-localization/build/eye",
+            "-t", "20",
+            "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
+            "--save-rate", "10",
+            "-s", formatted_now,
+            "--brightness", "1.0",
+            "--contrast", "2.0",
+            "--fps", str(args.fps)
+        ])
+
+        time.sleep(5)
+        localize_thread.start()
+
     if not c.set_mode('GUIDED'):
         exit()
 
@@ -596,3 +598,6 @@ if __name__ == "__main__":
         led.start()
 
     c.start_flight()
+
+    if args.localize:
+        localize_thread.join()
