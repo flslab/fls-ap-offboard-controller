@@ -28,7 +28,8 @@ class Controller:
         self.takeoff_altitude = takeoff_altitude
         self.start_time = time.time()
         self.battery_low = False
-        self.running = False
+        self.running_position_estimation = False
+        self.running_battery_watcher = False
         self.sim = sim
 
     def connect(self):
@@ -276,7 +277,7 @@ class Controller:
     def watch_battery(self):
         start = time.perf_counter()
 
-        while self.running:
+        while self.running_battery_watcher:
             elapsed = time.perf_counter() - start
 
             msg = self.master.recv_match(type=['BATTERY_STATUS'], blocking=True, timeout=1)
@@ -466,7 +467,7 @@ class Controller:
         shm_fd = open(f"/dev/shm{shm_name}", "r+b")  # Open shared memory
         shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
 
-        while self.running:
+        while self.running_position_estimation:
             data = shm_map[:position_size]  # Read 8 bytes (bool + 7 floats = 1 byte + 28 bytes)
             print("raw data:", data)
             valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
@@ -502,14 +503,15 @@ class Controller:
         flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
         # flight_thread = Thread(target=self.circular_trajectory)
 
+        self.running_battery_watcher = True
         battery_thread.start()
         flight_thread.start()
 
         flight_thread.join()
-        self.land()
-
-        self.running = False
+        self.running_battery_watcher = False
         battery_thread.join()
+
+        self.land()
 
     def stop(self):
         self.land()
@@ -571,9 +573,9 @@ if __name__ == "__main__":
 
     now = datetime.now()
     formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
-    c.running = True
 
     if args.localize:
+        c.running_position_estimation = True
         c_process = subprocess.Popen([
             "/home/fls/fls-marker-localization/build/eye",
             "-t", "40",
@@ -603,4 +605,5 @@ if __name__ == "__main__":
     c.start_flight()
 
     if args.localize:
+        c.running_position_estimation = False
         localize_thread.join()
