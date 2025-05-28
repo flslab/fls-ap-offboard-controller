@@ -172,9 +172,6 @@ class Controller:
 
         while True:
             msg = self.master.recv_match(type='HEARTBEAT', blocking=True, timeout=1)
-            if msg is None:
-                self.logger.warning("No heartbeat received. Waiting...")
-                continue
 
             if (msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) == 0:
                 self.logger.info("Vehicle is disarmed")
@@ -469,17 +466,16 @@ class Controller:
 
         while self.running_position_estimation:
             data = shm_map[:position_size]  # Read 8 bytes (bool + 7 floats = 1 byte + 28 bytes)
-            print("raw data:", data)
             valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
 
             if valid:
                 x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[1:])
-                self.logger.debug(f"Sending position estimation: ({-y}, {-x}, {0})")
+                self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
                 usec = int(time.time() * 1e6)
 
                 self.master.mav.vision_position_estimate_send(
                     usec,  # Timestamp (microseconds)
-                    -y,  # X
+                    y,  # X
                     -x,  # Y
                     0,  # Z (down is negative)
                     0,  # Roll
@@ -510,8 +506,6 @@ class Controller:
         flight_thread.join()
         self.running_battery_watcher = False
         battery_thread.join()
-
-        self.land()
 
     def stop(self):
         self.land()
@@ -603,6 +597,7 @@ if __name__ == "__main__":
         led.start()
 
     c.start_flight()
+    c.stop()
 
     if args.localize:
         c.running_position_estimation = False
