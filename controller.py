@@ -482,7 +482,6 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def start_flight(self):
-        self.running = True
         battery_thread = Thread(target=self.watch_battery, daemon=True)
 
         time.sleep(5)
@@ -507,8 +506,6 @@ class Controller:
 
         self.running = False
         battery_thread.join()
-        if args.localize:
-            localize_thread.join()
 
     def stop(self):
         self.land()
@@ -570,6 +567,8 @@ if __name__ == "__main__":
 
     now = datetime.now()
     formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
+    c.running = True
+
     if args.localize:
         c_process = subprocess.Popen([
             "/home/fls/fls-marker-localization/build/eye",
