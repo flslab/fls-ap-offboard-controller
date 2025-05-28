@@ -458,7 +458,7 @@ class Controller:
 
         while self.running:
             data = shm_map[:position_size]  # Read 8 bytes (bool + 7 floats = 1 byte + 28 bytes)
-            # print("raw data:", data)
+            print("raw data:", data)
             valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
 
             if valid:
