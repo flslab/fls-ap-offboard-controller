@@ -475,8 +475,8 @@ class Controller:
 
                 self.master.mav.vision_position_estimate_send(
                     usec,  # Timestamp (microseconds)
-                    y,  # X
-                    -x,  # Y
+                    0,  # X y
+                    0,  # Y -x
                     0,  # Z (down is negative)
                     0,  # Roll
                     0,  # Pitch
