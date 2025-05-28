@@ -169,6 +169,12 @@ class Controller:
         )
         self.logger.info("Landing command sent")
 
+        while True:
+            heartbeat = self.master.wait_heartbeat()
+            if not (heartbeat.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) != 0:
+                self.logger.info("Vehicle is disarmed")
+                break
+
     def disarm(self):
         """Disarm the vehicle"""
         if not self.connected:
@@ -497,12 +503,6 @@ class Controller:
 
         flight_thread.join()
         self.land()
-
-        while True:
-            msg = self.master.recv_match(type='HEARTBEAT', blocking=True)
-            if not (msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) != 0:
-                self.logger.info("Vehicle is disarmed")
-                break
 
         self.running = False
         battery_thread.join()
