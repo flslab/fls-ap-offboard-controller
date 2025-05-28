@@ -573,7 +573,7 @@ if __name__ == "__main__":
     if args.localize:
         c_process = subprocess.Popen([
             "/home/fls/fls-marker-localization/build/eye",
-            "-t", "20",
+            "-t", "40",
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
             "--save-rate", "10",
             "-s", formatted_now,
