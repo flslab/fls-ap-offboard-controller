@@ -473,15 +473,15 @@ class Controller:
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
                 usec = int(time.time() * 1e6)
 
-                self.master.mav.vision_position_estimate_send(
-                    usec,  # Timestamp (microseconds)
-                    0,  # X y
-                    0,  # Y -x
-                    0,  # Z (down is negative)
-                    0,  # Roll
-                    0,  # Pitch
-                    0  # Yaw
-                )
+                # self.master.mav.vision_position_estimate_send(
+                #     usec,  # Timestamp (microseconds)
+                #     0,  # X y
+                #     0,  # Y -x
+                #     0,  # Z (down is negative)
+                #     0,  # Roll
+                #     0,  # Pitch
+                #     0  # Yaw
+                # )
             else:
                 pass
                 # print("Invalid data received")
