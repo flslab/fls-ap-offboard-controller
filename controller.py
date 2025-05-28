@@ -5,7 +5,6 @@ import subprocess
 import time
 import math
 import mmap
-from datetime import datetime
 from threading import Thread
 
 from pymavlink import mavutil
@@ -473,15 +472,15 @@ class Controller:
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
                 usec = int(time.time() * 1e6)
 
-                # self.master.mav.vision_position_estimate_send(
-                #     usec,  # Timestamp (microseconds)
-                #     0,  # X y
-                #     0,  # Y -x
-                #     0,  # Z (down is negative)
-                #     0,  # Roll
-                #     0,  # Pitch
-                #     0  # Yaw
-                # )
+                self.master.mav.vision_position_estimate_send(
+                    usec,  # Timestamp (microseconds)
+                    0,  # X y
+                    0,  # Y -x
+                    0,  # Z (down is negative)
+                    0,  # Roll
+                    0,  # Pitch
+                    0  # Yaw
+                )
             else:
                 pass
                 # print("Invalid data received")
@@ -565,9 +564,6 @@ if __name__ == "__main__":
 
     localize_thread = Thread(target=c.send_position_estimation)
 
-    now = datetime.now()
-    formatted_now = now.strftime("%m_%d_%Y_%H_%M_%S")
-
     if args.localize:
         c.running_position_estimation = True
         c_process = subprocess.Popen([
@@ -575,10 +571,10 @@ if __name__ == "__main__":
             "-t", "40",
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
             "--save-rate", "10",
-            "-s", formatted_now,
             "--brightness", "1.0",
             "--contrast", "2.0",
-            "--fps", str(args.fps)
+            "--fps", str(args.fps),
+            "-s",
         ])
 
         time.sleep(5)
