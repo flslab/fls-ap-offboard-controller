@@ -170,8 +170,12 @@ class Controller:
         self.logger.info("Landing command sent")
 
         while True:
-            heartbeat = self.master.wait_heartbeat()
-            if not (heartbeat.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) != 0:
+            msg = self.master.recv_match(type='HEARTBEAT', blocking=True, timeout=1)
+            if msg is None:
+                self.logger.warning("No heartbeat received. Waiting...")
+                continue
+
+            if (msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) == 0:
                 self.logger.info("Vehicle is disarmed")
                 break
 
