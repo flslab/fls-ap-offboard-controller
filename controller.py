@@ -571,6 +571,7 @@ if __name__ == "__main__":
             "-t", "40",
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
             "-s",
+            "-v",
             "--save-rate", "10",
             "--brightness", "0.5",
             "--contrast", "2.5",
