@@ -578,7 +578,6 @@ if __name__ == "__main__":
             "-t", "40",
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
             "-s",
-            "-v",
             "--save-rate", "10",
             "--brightness", "0.5",
             "--contrast", "2.5",
@@ -601,9 +600,8 @@ if __name__ == "__main__":
         led = MovingDotLED()
         led.start()
 
-    # c.start_flight()
-    # c.stop()
-    time.sleep(15)
+    c.start_flight()
+    c.stop()
 
     if args.localize:
         c.running_position_estimation = False
