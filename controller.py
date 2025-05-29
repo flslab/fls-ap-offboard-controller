@@ -12,6 +12,10 @@ from pymavlink import mavutil
 from log import LoggerFactory
 
 
+def truncate(f, n):
+    return int(f * 10**n) / 10**n
+
+
 class Controller:
     def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, log_level=logging.INFO, sim=False,
                  device="/dev/ttyAMA0",
@@ -464,11 +468,14 @@ class Controller:
         shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
 
         while self.running_position_estimation:
-            data = shm_map[:position_size]  # Read 8 bytes (bool + 7 floats = 1 byte + 28 bytes)
+            data = shm_map[:position_size]  # Read 32 bytes
             valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
 
             if valid:
-                x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[4:])
+                # x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[4:])
+                x, y, z = struct.unpack("<7f", data[4:16])
+                x = truncate(x, 3)
+                y = truncate(y, 3)
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
                 usec = int(time.time() * 1e6)
 
