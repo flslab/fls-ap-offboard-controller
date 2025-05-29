@@ -601,8 +601,9 @@ if __name__ == "__main__":
         led = MovingDotLED()
         led.start()
 
-    c.start_flight()
-    c.stop()
+    time.sleep(10)
+    # c.start_flight()
+    # c.stop()
 
     if args.localize:
         c.running_position_estimation = False
