@@ -422,7 +422,7 @@ class Controller:
                 for i in range(20):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], point[2])
+                    self.send_position_target(point[0], point[1], 0)
                     time.sleep(1 / 20)
 
     def test_s_trajectory(self):
