@@ -476,14 +476,15 @@ class Controller:
                 x, y, z = struct.unpack("<3f", data[4:16])
                 x = truncate(x, 3)
                 y = truncate(y, 3)
-                self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
+                z = truncate(z, 3)
+                self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z})")
                 usec = int(time.time() * 1e6)
 
                 self.master.mav.vision_position_estimate_send(
                     usec,  # Timestamp (microseconds)
                     y,  # X y
                     -x,  # Y -x
-                    0,  # Z (down is negative)
+                    -z,  # Z (down is negative)
                     0,  # Roll
                     0,  # Pitch
                     0  # Yaw
