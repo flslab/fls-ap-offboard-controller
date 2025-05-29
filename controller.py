@@ -458,7 +458,7 @@ class Controller:
             time.sleep(1 / frequency)
 
     def send_position_estimation(self):
-        position_size = 1 + 7 * 4  # 1 byte + 7 floats (4 bytes each)
+        position_size = 1 + 3 + 7 * 4  # 1 byte + 3 byte padding + 7 floats (4 bytes each)
         shm_name = "/pos_shared_mem"
         shm_fd = open(f"/dev/shm{shm_name}", "r+b")  # Open shared memory
         shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
@@ -468,7 +468,7 @@ class Controller:
             valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
 
             if valid:
-                x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[1:])
+                x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[4:])
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
                 usec = int(time.time() * 1e6)
 
@@ -592,8 +592,9 @@ if __name__ == "__main__":
         led = MovingDotLED()
         led.start()
 
-    c.start_flight()
-    c.stop()
+    # c.start_flight()
+    # c.stop()
+    time.sleep(15)
 
     if args.localize:
         c.running_position_estimation = False
