@@ -489,6 +489,17 @@ class Controller:
                     0,  # Pitch
                     0  # Yaw
                 )
+
+                self.master.mav.odometry_send(
+                    usec,  # time
+                    1,  # frame_id (e.g., MAV_FRAME_LOCAL_NED)
+                    1,  # child_frame_id
+                    y, -x, z,  # position
+                    0, 0, 0,  # quaternion (not used here)
+                    0, 0, 0,  # velocity
+                    0, 0, 0,  # angular velocity
+                    [0] * 21  # pose_covariance & velocity_covariance (set to zero or appropriate)
+                )
             else:
                 pass
                 # print("Invalid data received")
