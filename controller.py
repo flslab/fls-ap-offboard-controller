@@ -473,7 +473,7 @@ class Controller:
 
             if valid:
                 # x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[4:])
-                x, y, z = struct.unpack("<7f", data[4:16])
+                x, y, z = struct.unpack("<3f", data[4:16])
                 x = truncate(x, 3)
                 y = truncate(y, 3)
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {0})")
