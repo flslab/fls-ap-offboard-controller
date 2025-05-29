@@ -570,11 +570,12 @@ if __name__ == "__main__":
             "/home/fls/fls-marker-localization/build/eye",
             "-t", "40",
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
-            "--save-rate", "10",
-            "--brightness", "1.0",
-            "--contrast", "2.0",
-            "--fps", str(args.fps),
             "-s",
+            "--save-rate", "10",
+            "--brightness", "0.5",
+            "--contrast", "2.5",
+            "--exposure", "500",
+            "--fps", str(args.fps),
         ])
 
         time.sleep(5)
