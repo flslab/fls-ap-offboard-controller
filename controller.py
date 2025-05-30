@@ -482,9 +482,9 @@ class Controller:
             if valid:
                 x, y, z, roll, pitch, yaw = struct.unpack("<6f", data[4:28])
                 # x, y, z = struct.unpack("<3f", data[4:16])
-                # x = truncate(x, 3)
-                # y = truncate(y, 3)
-                # z = truncate(z, 3)
+                x = truncate(x, 3)
+                y = truncate(y, 3)
+                z = truncate(z, 3)
                 # self.logger.debug(f"Sending position estimation: ({-y}, {x}, {-z} | {roll}, {pitch}, {yaw})")
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z})")
 
