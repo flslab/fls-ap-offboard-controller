@@ -481,7 +481,7 @@ class Controller:
                 usec = int(time.time() * 1e6)
 
                 self.master.mav.vision_position_estimate_send(
-                    usec,  # Timestamp (microseconds)
+                    int((time.time() - self.start_time) * 1000),
                     y,  # X y
                     -x,  # Y -x
                     -z,  # Z (down is negative)
@@ -612,7 +612,8 @@ if __name__ == "__main__":
         exit()
 
     if not c.arm_with_retry():
-        exit()
+        pass
+        # exit()
 
     if args.led:
         from led import MovingDotLED
