@@ -500,7 +500,7 @@ class Controller:
                 self.master.mav.vision_position_estimate_send(
                     int((time.time()) * 1000000),
                     -y,  # X y
-                    -x,  # Y -x
+                    x,  # Y -x
                     -z,  # Z (down is negative)
                     0,  #rpy_rad[0],  # Roll angle
                     0,  #rpy_rad[1],  # Pitch angle
