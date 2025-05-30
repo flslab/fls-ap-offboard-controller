@@ -497,14 +497,25 @@ class Controller:
                                        cov_twist, 0,
                                        cov_twist])
 
+                # self.master.mav.vision_position_estimate_send(
+                #     int((time.time()) * 1000000),
+                #     y,  # X y
+                #     -x,  # Y -x
+                #     -z,  # Z (down is negative)
+                #     rpy_rad[0],  # Roll angle
+                #     rpy_rad[1],  # Pitch angle
+                #     rpy_rad[2],  # Yaw angle
+                #     covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
+                #     reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
+                # )
                 self.master.mav.vision_position_estimate_send(
                     int((time.time()) * 1000000),
-                    y,  # X y
-                    -x,  # Y -x
-                    -z,  # Z (down is negative)
-                    rpy_rad[0],  # Roll angle
-                    rpy_rad[1],  # Pitch angle
-                    rpy_rad[2],  # Yaw angle
+                    0,  # X y
+                    0,  # Y -x
+                    0,  # Z (down is negative)
+                    0,  # Roll angle
+                    0,  # Pitch angle
+                    0,  # Yaw angle
                     covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
                     reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
                 )
