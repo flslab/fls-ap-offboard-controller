@@ -486,7 +486,7 @@ class Controller:
                 # y = truncate(y, 3)
                 # z = truncate(z, 3)
                 # self.logger.debug(f"Sending position estimation: ({-y}, {x}, {-z} | {roll}, {pitch}, {yaw})")
-                self.logger.debug(f"Sending position estimation: ({y}, {-x})")
+                self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z})")
 
                 rpy_rad = np.array([roll, pitch, yaw])
 
