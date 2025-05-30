@@ -492,22 +492,22 @@ class Controller:
                 q = [1.0, 0.0, 0.0, 0.0]  # identity quaternion (w, x, y, z)
                 pose_cov = [0.0] * 21
                 vel_cov = [0.0] * 21
-                self.master.mav.odometry_send(
-                    time_usec=usec,
-                    frame_id=1,          # MAV_FRAME_LOCAL_NED
-                    child_frame_id=1,    # arbitrary, just be consistent
-                    x=x, y=y, z=z,
-                    q=q,
-                    vx=0, vy=0, vz=0,
-                    rollspeed=0,
-                    pitchspeed=0,
-                    yawspeed=0,
-                    pose_covariance=pose_cov,
-                    velocity_covariance=vel_cov,
-                    reset_counter=0,
-                    estimator_type=0,   # MAV_ESTIMATOR_TYPE_NAIVE
-                    quality=0           # 0-100, optional
-                )
+                # self.master.mav.odometry_send(
+                #     time_usec=usec,
+                #     frame_id=1,          # MAV_FRAME_LOCAL_NED
+                #     child_frame_id=1,    # arbitrary, just be consistent
+                #     x=x, y=y, z=z,
+                #     q=q,
+                #     vx=0, vy=0, vz=0,
+                #     rollspeed=0,
+                #     pitchspeed=0,
+                #     yawspeed=0,
+                #     pose_covariance=pose_cov,
+                #     velocity_covariance=vel_cov,
+                #     reset_counter=0,
+                #     estimator_type=0,   # MAV_ESTIMATOR_TYPE_NAIVE
+                #     quality=0           # 0-100, optional
+                # )
             else:
                 pass
                 # print("Invalid data received")
