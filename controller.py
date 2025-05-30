@@ -547,7 +547,7 @@ class Controller:
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
 
-        time.sleep(5)
+        time.sleep(3)
         c.takeoff()
         time.sleep(5)
 
@@ -640,7 +640,7 @@ if __name__ == "__main__":
             "--fps", str(args.fps),
         ])
 
-        time.sleep(5)
+        time.sleep(2)
         localize_thread.start()
 
     if not c.set_mode('GUIDED'):
@@ -657,9 +657,9 @@ if __name__ == "__main__":
         led = MovingDotLED()
         led.start()
 
-    time.sleep(10)
-    # c.start_flight()
-    # c.stop()
+    # time.sleep(10)
+    c.start_flight()
+    c.stop()
 
     if args.localize:
         c.running_position_estimation = False
