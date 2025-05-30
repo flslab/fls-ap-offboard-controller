@@ -502,9 +502,9 @@ class Controller:
                     y,  # X y
                     -x,  # Y -x
                     -z,  # Z (down is negative)
-                    rpy_rad[0],  # Roll angle
-                    rpy_rad[1],  # Pitch angle
-                    rpy_rad[2],  # Yaw angle
+                    0,  #rpy_rad[0],  # Roll angle
+                    0,  #rpy_rad[1],  # Pitch angle
+                    0,  #rpy_rad[2],  # Yaw angle
                     covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
                     reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
                 )
