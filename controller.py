@@ -609,7 +609,8 @@ if __name__ == "__main__":
         localize_thread.start()
 
     if not c.set_mode('GUIDED'):
-        exit()
+        pass
+        # exit()
 
     if not c.arm_with_retry():
         pass
