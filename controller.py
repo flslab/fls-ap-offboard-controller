@@ -486,7 +486,7 @@ class Controller:
                 # y = truncate(y, 3)
                 # z = truncate(z, 3)
                 # self.logger.debug(f"Sending position estimation: ({-y}, {x}, {-z} | {roll}, {pitch}, {yaw})")
-                self.logger.debug(f"Sending position estimation: ({-y}, {x})")
+                self.logger.debug(f"Sending position estimation: ({-y}, {-x})")
 
                 rpy_rad = np.array([roll, pitch, yaw])
 
@@ -504,7 +504,7 @@ class Controller:
                 self.master.mav.vision_position_estimate_send(
                     int((time.time()) * 1000000),
                     -y,  # X y
-                    x,  # Y -x
+                    -x,  # Y -x
                     -z,  # Z (down is negative)
                     0,  #rpy_rad[0],  # Roll angle
                     0,  #rpy_rad[1],  # Pitch angle
