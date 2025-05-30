@@ -71,7 +71,7 @@ class Controller:
             time.sleep(0.5)
 
         self.logger.info("Waiting for system initialization...")
-        time.sleep(2)
+        time.sleep(5)
 
     def reboot(self):
         self.master.mav.command_long_send(
