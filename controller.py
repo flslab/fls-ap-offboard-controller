@@ -422,7 +422,7 @@ class Controller:
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
-        points = [(x, y, -self.takeoff_altitude - z), (0, 0, -self.takeoff_altitude)]
+        points = [(x, y, -self.takeoff_altitude - z)]
 
         for j in range(1):
             for point in points:
