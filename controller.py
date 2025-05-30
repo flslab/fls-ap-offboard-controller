@@ -426,11 +426,11 @@ class Controller:
 
         for j in range(1):
             for point in points:
-                for i in range(20):
+                for i in range(self.flight_duration * 10):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], 0)
-                    time.sleep(1 / 20)
+                    time.sleep(1 / 10)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
@@ -633,7 +633,7 @@ if __name__ == "__main__":
         c.running_position_estimation = True
         c_process = subprocess.Popen([
             "/home/fls/fls-marker-localization/build/eye",
-            "-t", "40",
+            "-t", str(30 + args.duration),
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
             "-s",
             "--save-rate", "10",
