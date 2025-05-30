@@ -7,9 +7,13 @@ import math
 import mmap
 from threading import Thread
 
+import numpy as np
 from pymavlink import mavutil
 
 from log import LoggerFactory
+
+linear_accel_cov = 0.01
+angular_vel_cov = 0.01
 
 
 def truncate(f, n):
@@ -462,32 +466,47 @@ class Controller:
             time.sleep(1 / frequency)
 
     def send_position_estimation(self):
-        position_size = 1 + 3 + 7 * 4  # 1 byte + 3 byte padding + 7 floats (4 bytes each)
+        position_size = 1 + 3 + 6 * 4  # 1 byte + 3 byte padding + 6 floats (4 bytes each)
         shm_name = "/pos_shared_mem"
         shm_fd = open(f"/dev/shm{shm_name}", "r+b")  # Open shared memory
         shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
+        reset_counter = 1
 
         while self.running_position_estimation:
-            data = shm_map[:position_size]  # Read 32 bytes
+            data = shm_map[:position_size]  # Read 28 bytes
             valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
 
             if valid:
-                # x, y, z, qx, qy, qz, qw = struct.unpack("<7f", data[4:])
-                x, y, z = struct.unpack("<3f", data[4:16])
-                x = truncate(x, 3)
-                y = truncate(y, 3)
-                z = truncate(z, 3)
-                self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z})")
-                usec = int(time.time() * 1e6)
+                x, y, z, roll, pitch, yaw = struct.unpack("<6f", data[4:28])
+                # x, y, z = struct.unpack("<3f", data[4:16])
+                # x = truncate(x, 3)
+                # y = truncate(y, 3)
+                # z = truncate(z, 3)
+                self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z} | {roll}, {pitch}, {yaw})")
+
+                rpy_rad = np.array([roll, pitch, yaw])
+
+                # Setup covariance data, which is the upper right triangle of the covariance matrix, see here: https://files.gitter.im/ArduPilot/VisionProjects/1DpU/image.png
+                # Attemp #01: following this formula https://github.com/IntelRealSense/realsense-ros/blob/development/realsense2_camera/src/base_realsense_node.cpp#L1406-L1411
+                cov_pose = linear_accel_cov * pow(10, 3 - int(3))
+                cov_twist = angular_vel_cov * pow(10, 1 - int(3))
+                covariance = np.array([cov_pose, 0, 0, 0, 0, 0,
+                                       cov_pose, 0, 0, 0, 0,
+                                       cov_pose, 0, 0, 0,
+                                       cov_twist, 0, 0,
+                                       cov_twist, 0,
+                                       cov_twist])
 
                 self.master.mav.vision_position_estimate_send(
-                    int((time.time() - self.start_time) * 1000),
+                    int((time.time()) * 1000000),
                     y,  # X y
                     -x,  # Y -x
                     -z,  # Z (down is negative)
-                    0,  # Roll
-                    0,  # Pitch
-                    0  # Yaw
+                    rpy_rad[0],  # Roll angle
+                    rpy_rad[1],  # Pitch angle
+                    rpy_rad[2],  # Yaw angle
+                    covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
+                    reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
                 )
                 q = [1.0, 0.0, 0.0, 0.0]  # identity quaternion (w, x, y, z)
                 pose_cov = [0.0] * 21
