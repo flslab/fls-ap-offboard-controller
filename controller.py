@@ -180,6 +180,9 @@ class Controller:
         while True:
             msg = self.master.recv_match(type='HEARTBEAT', blocking=True, timeout=1)
 
+            if msg is None:
+                continue
+
             if (msg.base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED) == 0:
                 self.logger.info("Vehicle is disarmed")
                 break
