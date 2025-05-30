@@ -611,6 +611,11 @@ if __name__ == "__main__":
     localize_thread = Thread(target=c.send_position_estimation)
 
     if args.localize:
+        lat = 12345
+        lon = 12345
+        alt = 0
+        c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
+        c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
         c.running_position_estimation = True
         c_process = subprocess.Popen([
             "/home/fls/fls-marker-localization/build/eye",
