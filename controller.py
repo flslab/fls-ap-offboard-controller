@@ -440,11 +440,11 @@ class Controller:
 
         for j in range(3):
             for point in points:
-                for i in range(40):
+                for i in range(20):
                     if self.battery_low:
                         return
                     self.send_position_target(point[0], point[1], -1 - point[2])
-                    time.sleep(1 / 20)
+                    time.sleep(1 / 10)
 
     def circular_trajectory(self):
         radius = 0.5  # 1m diameter
