@@ -298,10 +298,10 @@ class Controller:
 
                     if isinstance(voltage, float) and voltage < self.voltage_threshold:
                         self.battery_low = True
-                        self.logger.warning(f"Failsafe triggered due to low battery")
+                        self.logger.warning(f"Failsafe triggered due to low battery ({voltage} V)")
                         break
 
-            self.logger.info(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
+            self.logger.debug(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
 
     def send_trajectory_message(self, point_num, pos, vel, acc, time_horizon):
         """Send a trajectory setpoint using MAVLink TRAJECTORY message."""
@@ -413,11 +413,15 @@ class Controller:
         point_count = len(t)
 
         # Send each point in the trajectory
-        for j in range(2):
+        for j in range(1):
             for i in range(point_count):
                 if self.battery_low:
                     return
-                self.send_position_target(x[i] * .25 - x[0] * .25, y[i] * .25 - y[0] * .25, -1 - z[i] * .25 + z[0] * .25)
+                x = 0
+                y = y[i]
+                z = z[z]
+                print(x, y, z)
+                # self.send_position_target(x, y, z)
                 time.sleep(1 / 10)
 
     def test_trajectory(self, x=0, y=0, z=0):
