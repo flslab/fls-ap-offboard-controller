@@ -566,9 +566,9 @@ class Controller:
         c.takeoff()
         time.sleep(5)
 
-        # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+        flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
         # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
-        flight_thread = Thread(target=self.test_s_trajectory)
+        # flight_thread = Thread(target=self.test_s_trajectory)
         # flight_thread = Thread(target=self.circular_trajectory)
 
         self.running_battery_watcher = True
