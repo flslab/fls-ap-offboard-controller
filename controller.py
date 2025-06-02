@@ -413,7 +413,7 @@ class Controller:
         point_count = len(t)
 
         # Send each point in the trajectory
-        for j in range(1):
+        for j in range(3):
             for i in range(point_count):
                 if self.battery_low:
                     return
@@ -422,7 +422,7 @@ class Controller:
                 _z = -1 - (z[i]-z[0]) * 2
                 # print(_x, _y, _z)
                 self.send_position_target(_x, _y, _z)
-                time.sleep(1 / 10)
+                time.sleep(1 / 20)
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
