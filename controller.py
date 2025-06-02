@@ -419,7 +419,7 @@ class Controller:
                     return
                 x = 0
                 y = y[i]
-                z = z[z]
+                z = z[i]
                 print(x, y, z)
                 # self.send_position_target(x, y, z)
                 time.sleep(1 / 10)
