@@ -494,12 +494,19 @@ class Controller:
                 # Attemp #01: following this formula https://github.com/IntelRealSense/realsense-ros/blob/development/realsense2_camera/src/base_realsense_node.cpp#L1406-L1411
                 cov_pose = linear_accel_cov * pow(10, 3 - int(3))
                 cov_twist = angular_vel_cov * pow(10, 1 - int(3))
-                covariance = np.array([cov_pose, 0, 0, 0, 0, 0,
-                                       cov_pose, 0, 0, 0, 0,
-                                       cov_pose, 0, 0, 0,
-                                       cov_twist, 0, 0,
-                                       cov_twist, 0,
-                                       cov_twist])
+                # covariance = np.array([cov_pose, 0, 0, 0, 0, 0,
+                #                        cov_pose, 0, 0, 0, 0,
+                #                        cov_pose, 0, 0, 0,
+                #                        cov_twist, 0, 0,
+                #                        cov_twist, 0,
+                #                        cov_twist])
+
+                covariance = np.array([0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0,
+                                       0, 0, 0, 0,
+                                       0, 0, 0,
+                                       0, 0,
+                                       0])
 
                 self.master.mav.vision_position_estimate_send(
                     int((time.time()) * 1000000),
