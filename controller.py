@@ -419,7 +419,7 @@ class Controller:
                     return
                 _x = 0
                 _y = x[i] * 2
-                _z = -1 -z[i] * 2
+                _z = -1 - (z[i]-z[0]) * 2
                 # print(_x, _y, _z)
                 self.send_position_target(_x, _y, _z)
                 time.sleep(1 / 10)
