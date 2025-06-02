@@ -641,7 +641,7 @@ if __name__ == "__main__":
         c.running_position_estimation = True
         c_process = subprocess.Popen([
             "/home/fls/fls-marker-localization/build/eye",
-            "-t", str(40 + args.duration),
+            "-t", str(30 + args.duration),
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
             "-s",
             "--save-rate", "10",
