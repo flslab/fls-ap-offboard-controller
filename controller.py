@@ -443,7 +443,7 @@ class Controller:
                 for i in range(20):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[2] - 0.7, point[0], -1 - (point[1] - 0.7))
+                    self.send_position_target(point[2], point[0] - 0.3, -1 - (point[1] - 1.7)/3)
                     time.sleep(1 / 10)
 
     def circular_trajectory(self):
