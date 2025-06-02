@@ -417,7 +417,7 @@ class Controller:
             for i in range(point_count):
                 if self.battery_low:
                     return
-                self.send_position_target(x[i] * 3 - x[0] * 3, z[i] * 3 - z[0] * 3, -1 - y[i] * 3)
+                self.send_position_target(x[i] * .25 - x[0] * .25, y[i] * .25 - y[0] * .25, -1 - z[i] * .25 + z[0] * .25)
                 time.sleep(1 / 10)
 
     def test_trajectory(self, x=0, y=0, z=0):
@@ -562,8 +562,8 @@ class Controller:
         c.takeoff()
         time.sleep(5)
 
-        # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
+        flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+        # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
         # flight_thread = Thread(target=self.circular_trajectory)
 
         self.running_battery_watcher = True
