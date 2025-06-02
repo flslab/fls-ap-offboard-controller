@@ -418,10 +418,10 @@ class Controller:
                 if self.battery_low:
                     return
                 _x = 0
-                _y = y[i]
-                _z = z[i]
-                print(_x, _y, _z)
-                # self.send_position_target(_x, _y, _z)
+                _y = x[i] * 2
+                _z = z[i] * 2
+                # print(_x, _y, _z)
+                self.send_position_target(_x, _y, _z)
                 time.sleep(1 / 10)
 
     def test_trajectory(self, x=0, y=0, z=0):
