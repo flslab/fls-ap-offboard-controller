@@ -333,14 +333,14 @@ class Controller:
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
 
-        mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
         """
         self.logger.debug(f"Sending position {x} {y} {z}")
         self.master.mav.set_position_target_local_ned_send(
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
             self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
             0b100111111000,  # only x, y, z position and yaw
             x, y, z,
             0, 0, 0,  # velocity
@@ -429,7 +429,7 @@ class Controller:
                 for i in range(int(self.flight_duration * 10)):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], 0)
+                    self.send_position_target(point[0], point[1], -1)
                     time.sleep(1 / 10)
 
     def test_s_trajectory(self):
