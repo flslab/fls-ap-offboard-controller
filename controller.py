@@ -440,7 +440,7 @@ class Controller:
 
         for j in range(1):
             for point in points:
-                for i in range(20):
+                for i in range(10):
                     if self.battery_low:
                         return
                     self.send_position_target(point[2], point[0] - 0.3, -1 - (point[1] - 1.7)/3)
