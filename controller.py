@@ -187,6 +187,12 @@ class Controller:
                 self.logger.info("Vehicle is disarmed")
                 break
 
+    def custom_land(self):
+        for i in range(50):
+            self.send_position_velocity_target(0, 0, 0, 0, 0, 0.2)
+            time.sleep(1 / 10)
+        self.land()
+
     def disarm(self):
         """Disarm the vehicle"""
         if not self.connected:
@@ -617,7 +623,7 @@ class Controller:
         battery_thread.join()
 
     def stop(self):
-        self.land()
+        self.custom_land()
 
         if args.led:
             led.stop()
