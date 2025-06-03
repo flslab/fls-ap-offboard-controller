@@ -432,6 +432,10 @@ class Controller:
         time_interval = t[1] - t[0]
         point_count = len(t)
 
+        __x = 0
+        __y = 0
+        __z = 0
+        dt = 1 / 10
         # Send each point in the trajectory
         for j in range(1):
             for i in range(point_count):
@@ -440,14 +444,22 @@ class Controller:
                 _x = 0
                 _y = x[i] * 2
                 _z = -1 - (z[i]-z[0]) * 2
-                _vx = 0
-                _vy = vx[i] * 2
-                _vz = -vz[i] * 2
+
+                # _vx = 0
+                # _vy = vx[i] * 2
+                # _vz = -vz[i] * 2
+                _vx = (_x - __x) / dt
+                _vy = (_y - __y) / dt
+                _vz = (_z - __z) / dt
+
+                __x = _x
+                __y = _y
+                __z = _z
                 # print(_x, _y, _z)
                 # self.send_position_target(_x, _y, _z)
                 self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
                 # self.send_velocity_target(_vx, _vy, _vz)
-                time.sleep(1 / 10)
+                time.sleep(dt)
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
