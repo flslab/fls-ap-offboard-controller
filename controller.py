@@ -623,7 +623,7 @@ class Controller:
         battery_thread.join()
 
     def stop(self):
-        self.custom_land()
+        self.land()
 
         if args.led:
             led.stop()
