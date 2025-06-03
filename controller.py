@@ -375,7 +375,7 @@ class Controller:
 
         mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
         """
-        self.logger.debug(f"Sending position {x} {y} {z}")
+        self.logger.debug(f"Sending position velocity {x} {y} {z} | {vx} {vy} {vz}")
         self.master.mav.set_position_target_local_ned_send(
             int((time.time() - self.start_time) * 1000),  # milliseconds since start
             self.master.target_system,
