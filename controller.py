@@ -445,8 +445,8 @@ class Controller:
                 _vz = -vz[i]
                 # print(_x, _y, _z)
                 # self.send_position_target(_x, _y, _z)
-                # self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
-                self.send_velocity_target(_vx, _vy, _vz)
+                self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
+                # self.send_velocity_target(_vx, _vy, _vz)
                 time.sleep(1 / 10)
 
     def test_trajectory(self, x=0, y=0, z=0):
