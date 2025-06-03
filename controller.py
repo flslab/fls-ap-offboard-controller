@@ -368,6 +368,26 @@ class Controller:
             0, 0  # yaw, yaw_rate
         )
 
+    def send_position_velocity_target(self, x, y, z, vx, vy, vz):
+        """
+        Sends waypoints in local NED frame
+        X is forward, Y is right, Z is down with origin fixed relative to ground
+
+        mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,
+        """
+        self.logger.debug(f"Sending position {x} {y} {z}")
+        self.master.mav.set_position_target_local_ned_send(
+            int((time.time() - self.start_time) * 1000),  # milliseconds since start
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
+            0b100111000000,  # x, y, z position, velocity and yaw
+            x, y, z,
+            vx, vy, vz,  # velocity
+            0, 0, 0,  # acceleration
+            0, 0  # yaw, yaw_rate
+        )
+
     def send_acceleration_target(self, ax, ay, az):
         """
         Sends waypoints in local NED frame
@@ -398,9 +418,9 @@ class Controller:
 
         t = df['time'].values
 
-        # vx = df['velocity_x'].values
-        # vy = df['velocity_y'].values
-        # vz = df['velocity_z'].values
+        vx = df['velocity_x'].values
+        vy = df['velocity_y'].values
+        vz = df['velocity_z'].values
         # speed = df['speed'].values
         #
         # ax = df['acceleration_x'].values
@@ -420,8 +440,12 @@ class Controller:
                 _x = 0
                 _y = x[i] * 2
                 _z = -1 - (z[i]-z[0]) * 2
+                _vx = 0
+                _vy = vx[i] * 2
+                _vz = -vz[i] * 2
                 # print(_x, _y, _z)
-                self.send_position_target(_x, _y, _z)
+                # self.send_position_target(_x, _y, _z)
+                self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
                 time.sleep(1 / 10)
 
     def test_trajectory(self, x=0, y=0, z=0):
