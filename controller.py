@@ -17,11 +17,12 @@ angular_vel_cov = 0.01
 
 
 def truncate(f, n):
-    return int(f * 10**n) / 10**n
+    return int(f * 10 ** n) / 10 ** n
 
 
 class Controller:
-    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, log_level=logging.INFO, sim=False,
+    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
+                 sim=False,
                  device="/dev/ttyAMA0",
                  baudrate=57600):
         self.device = device
@@ -33,6 +34,7 @@ class Controller:
         self.flight_duration = flight_duration
         self.voltage_threshold = voltage_threshold
         self.takeoff_altitude = takeoff_altitude
+        self.land_altitude = land_altitude
         self.start_time = time.time()
         self.battery_low = False
         self.running_position_estimation = False
@@ -189,7 +191,7 @@ class Controller:
 
     def custom_land(self):
         for i in range(50):
-            self.send_position_velocity_target(0, 0, 0, 0, 0, 0.2)
+            self.send_position_target(0, 0, -self.land_altitude)
             time.sleep(1 / 10)
         self.land()
 
@@ -482,7 +484,7 @@ class Controller:
     def test_s_trajectory(self):
         self.logger.info("Sending")
         points = [(0.6, 1.7, 0), (0.35, 2, 0), (0, 1.7, 0), (0.15, 1.2, 0), (0.35, 1, 0),
-         (0.55, .8, 0), (0.7, 0.3, 0), (0.35, 0, 0), (0.1, 0.3, 0)]
+                  (0.55, .8, 0), (0.7, 0.3, 0), (0.35, 0, 0), (0.1, 0.3, 0)]
         # points = [(0, 0.25, 0), (0, 0, 0)]
 
         for j in range(1):
@@ -490,7 +492,7 @@ class Controller:
                 for i in range(10):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[2], point[0] - 0.3, -1 - (point[1] - 1.7)/3)
+                    self.send_position_target(point[2], point[0] - 0.3, -1 - (point[1] - 1.7) / 3)
                     time.sleep(1 / 10)
 
     def circular_trajectory(self):
@@ -560,9 +562,9 @@ class Controller:
                     y,  # X y
                     -x,  # Y -x
                     -z,  # Z -z (down is negative)
-                    0,  #rpy_rad[0],  # Roll angle
-                    0,  #rpy_rad[1],  # Pitch angle
-                    0,  #rpy_rad[2],  # Yaw angle
+                    0,  # rpy_rad[0],  # Roll angle
+                    0,  # rpy_rad[1],  # Pitch angle
+                    0,  # rpy_rad[2],  # Yaw angle
                     covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
                     reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
                 )
@@ -623,7 +625,7 @@ class Controller:
         battery_thread.join()
 
     def stop(self):
-        self.land()
+        self.custom_land()
 
         if args.led:
             led.stop()
@@ -642,6 +644,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
     arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate")
     arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
+    arg_parser.add_argument("--land-altitude", type=float, default=1.0, help="landing altitude in meter")
     arg_parser.add_argument("--voltage", type=float, default=7.4,
                             help="critical battery voltage threshold to land when reached")
     arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
@@ -651,6 +654,7 @@ if __name__ == "__main__":
     log_level = logging.DEBUG if args.debug else logging.INFO
     c = Controller(
         takeoff_altitude=args.takeoff_altitude,
+        land_altitude=args.land_altitude,
         sim=args.sim,
         log_level=log_level,
         flight_duration=args.duration,
