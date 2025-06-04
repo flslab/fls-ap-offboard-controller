@@ -450,29 +450,33 @@ class Controller:
         __z = 0
         dt = 1 / 10
         # Send each point in the trajectory
-        for j in range(2):
+        for j in range(1):
             for i in range(point_count):
-                if self.battery_low:
-                    return
-                _x = 0
-                _y = x[i] * 2 - x[0]
-                _z = -self.takeoff_altitude - (z[i] - z[0]) * 2
+                for k in range(3):
+                    if self.battery_low:
+                        return
+                    _x = 0
+                    _y = (x[i] - x[0]) * 2
+                    _z = - self.takeoff_altitude - (z[i] - z[0]) * 2
 
-                _vx = 0
-                _vy = vx[i] * 2
-                _vz = -vz[i] * 2
-                # _vx = (_x - __x) / dt
-                # _vy = (_y - __y) / dt
-                # _vz = (_z - __z) / dt
+                    _vx = 0
+                    _vy = vx[i] * 10
+                    _vz = vz[i] * 10
+                    # _vx = (_x - __x) / dt
+                    # _vy = (_y - __y) / dt
+                    # _vz = (_z - __z) / dt
 
-                # __x = _x
-                # __y = _y
-                # __z = _z
-                # print(_x, _y, _z)
-                # self.send_position_target(_x, _y, _z)
-                self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
-                # self.send_velocity_target(_vx, _vy, _vz)
-                time.sleep(dt)
+                    # __x = _x
+                    # __y = _y
+                    # __z = _z
+                    # print(_x, _y, _z)
+                    if args.sim:
+                        self.send_position_target(_z, _y, -1)
+                    else:
+                        self.send_position_target(_x, _y, _z)
+                    # self.send_position_velocity_target(_z, _y, -1, _vz, _vy, _vx)
+                    # self.send_velocity_target(_vx, _vy, _vz)
+                    time.sleep(dt)
 
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
@@ -616,8 +620,8 @@ class Controller:
         c.takeoff()
         time.sleep(5)
 
-        # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
+        flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+        # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
         # flight_thread = Thread(target=self.test_s_trajectory)
         # flight_thread = Thread(target=self.circular_trajectory)
 
