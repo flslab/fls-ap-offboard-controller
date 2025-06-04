@@ -190,7 +190,7 @@ class Controller:
                 break
 
     def custom_land(self):
-        for i in range(50):
+        for i in range(60):
             self.send_position_target(0, 0, -self.land_altitude)
             time.sleep(1 / 10)
         self.land()
@@ -625,7 +625,7 @@ class Controller:
         battery_thread.join()
 
     def stop(self):
-        self.land()
+        self.custom_land()
 
         if args.led:
             led.stop()
