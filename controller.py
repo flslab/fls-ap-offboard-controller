@@ -192,7 +192,7 @@ class Controller:
     def custom_land(self):
         delta_z = self.takeoff_altitude - self.land_altitude
         for i in range(60):
-            self.send_position_target(0, 0, -self.land_altitude - (i / 60) * delta_z)
+            self.send_position_target(0, 0, -self.takeoff_altitude + (i / 60) * delta_z)
             time.sleep(1 / 10)
         self.land()
 
