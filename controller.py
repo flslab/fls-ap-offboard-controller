@@ -463,8 +463,8 @@ class Controller:
                     if self.battery_low:
                         return
                     _x = 0
-                    _y = (x[i] - x[0]) * 2
-                    _z = - self.takeoff_altitude - (z[i] - z[0]) * 2
+                    _y = (x[i]) * 2.5 - x[0]
+                    _z = - self.takeoff_altitude - (z[i] - z[0]) * 2.5
 
                     _vx = 0
                     _vy = vx[i] * 10
