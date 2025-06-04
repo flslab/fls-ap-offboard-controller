@@ -40,6 +40,7 @@ class Controller:
         self.running_position_estimation = False
         self.running_battery_watcher = False
         self.sim = sim
+        self.initial_yaw = 0
 
     def connect(self):
         if self.sim:
@@ -74,6 +75,12 @@ class Controller:
 
         self.logger.info("Waiting for system initialization...")
         time.sleep(5)
+
+        msg = self.master.recv_match(type='ATTITUDE', blocking=True)
+        if msg:
+            yaw_rad = msg.yaw
+            print(yaw_rad)
+            self.initial_yaw = yaw_rad
 
     def reboot(self):
         self.master.mav.command_long_send(
@@ -358,7 +365,7 @@ class Controller:
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            0, 0  # yaw, yaw_rate
+            self.initial_yaw, 0  # yaw, yaw_rate
         )
 
     def send_velocity_target(self, vx, vy, vz):
@@ -378,7 +385,7 @@ class Controller:
             0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            0, 0  # yaw, yaw_rate
+            self.initial_yaw, 0  # yaw, yaw_rate
         )
 
     def send_position_velocity_target(self, x, y, z, vx, vy, vz):
@@ -398,7 +405,7 @@ class Controller:
             x, y, z,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            0, 0  # yaw, yaw_rate
+            self.initial_yaw, 0  # yaw, yaw_rate
         )
 
     def send_acceleration_target(self, ax, ay, az):
@@ -416,7 +423,7 @@ class Controller:
             0, 0, 0,
             0, 0, 0,  # velocity
             ax, ay, az,  # acceleration
-            0, 0  # yaw, yaw_rate
+            self.initial_yaw, 0  # yaw, yaw_rate
         )
 
     def send_trajectory_from_file(self, file_path):
