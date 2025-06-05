@@ -661,7 +661,8 @@ class Controller:
     def test_trajectory_2(self):
         waypoints = [
             [0, 0, -self.takeoff_altitude],
-            [.2, 0, -self.takeoff_altitude]
+            [-.2, 0, -self.takeoff_altitude],
+            [-.2, 0, -self.takeoff_altitude]
         ]
         trajectory = self.generate_pos_vel_path(waypoints, target_speed=1.0, dt=0.05)
 
