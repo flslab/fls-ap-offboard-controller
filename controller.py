@@ -679,8 +679,9 @@ class Controller:
         ]
 
         for pos in waypoints:
-            self.send_position_target(*pos)
-            time.sleep(1)
+            for i in range(10):
+                self.send_position_target(*pos)
+                time.sleep(1/10)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
