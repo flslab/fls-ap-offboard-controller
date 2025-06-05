@@ -20,6 +20,24 @@ def truncate(f, n):
     return int(f * 10 ** n) / 10 ** n
 
 
+# Class for formatting the Mission Item.
+class MissionItem:
+    def __init__(self, i, current, x, y, z):
+        self.seq = i
+        self.frame = mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT
+        self.command = mavutil.mavlink.MAV_CMD_NAV_WAYPOINT
+        self.current = current
+        self.auto = 1
+        self.param1 = 0.0
+        self.param2 = 0.1
+        self.param3 = 0.0
+        self.param4 = math.nan
+        self.param5 = x
+        self.param6 = y
+        self.param7 = z
+        self.mission_type = 0  # The MAV_MISSION_TYPE value for MAV_MISSION_TYPE_MISSION
+
+
 class Controller:
     def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
                  sim=False,
@@ -41,6 +59,7 @@ class Controller:
         self.running_battery_watcher = False
         self.sim = sim
         self.initial_yaw = 0
+        self.mission_items = []
 
     def connect(self):
         if self.sim:
@@ -92,11 +111,13 @@ class Controller:
             0, 0, 0, 0, 0, 0  # unused parameters
         )
 
-    def wait_for_command_ack(self, command, timeout=5):
+    def wait_for_command_ack(self, ack_type='COMMAND_ACK', command=None, timeout=5):
         """Wait for command acknowledgement"""
         start = time.time()
         while time.time() - start < timeout:
-            msg = self.master.recv_match(type='COMMAND_ACK', blocking=True, timeout=1)
+            msg = self.master.recv_match(type=ack_type, blocking=True, timeout=1)
+            if command is None:
+                return True
             if msg and msg.command == command:
                 if msg.result == mavutil.mavlink.MAV_RESULT_ACCEPTED:
                     return True
@@ -155,7 +176,7 @@ class Controller:
         )
 
         # Wait for ACK
-        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM)
+        ack = self.wait_for_command_ack(command=mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM)
         if ack:
             self.is_armed = True
             self.logger.info("Vehicle armed")
@@ -174,7 +195,7 @@ class Controller:
             self.takeoff_altitude
         )
         self.logger.info(f"Takeoff command sent to {self.takeoff_altitude} meters")
-        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_NAV_TAKEOFF)
+        ack = self.wait_for_command_ack(command=mavutil.mavlink.MAV_CMD_NAV_TAKEOFF)
 
     # Land the drone
     def land(self):
@@ -225,7 +246,7 @@ class Controller:
         )
 
         # Wait for ACK
-        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM)
+        ack = self.wait_for_command_ack(command=mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM)
         if ack:
             self.is_armed = False
             self.logger.info("Vehicle disarmed")
@@ -273,7 +294,7 @@ class Controller:
             0, 0, 0, 0, 0
         )
 
-        ack = self.wait_for_command_ack(mavutil.mavlink.MAV_CMD_DO_SET_MODE)
+        ack = self.wait_for_command_ack(command=mavutil.mavlink.MAV_CMD_DO_SET_MODE)
         heartbeat = self.master.wait_heartbeat()
         if ack and heartbeat.custom_mode == mode_id:
             self.logger.info(f"Mode changed to {mode}")
@@ -426,6 +447,45 @@ class Controller:
             self.initial_yaw, 0  # yaw, yaw_rate
         )
 
+    def upload_mission(self, mission_items):
+        n = len(mission_items)
+
+        # Send the number of mission items
+        self.master.mav.mission_count_send(
+            self.master.target_system,
+            self.master.target_component,
+            n,
+            0
+        )
+
+        self.wait_for_command_ack(ack_type="MISSION_REQUEST")
+
+        for waypoint in mission_items:
+
+            # Send each mission item
+            self.master.mav.mission_item_send(
+                self.master.target_system,  # Target System
+                self.master.target_component,  # Target Component
+                waypoint.seq,  # Sequence
+                waypoint.frame,  # Frame
+                waypoint.command,  # Command
+                waypoint.current,  # Current
+                waypoint.auto,  # Auto continue
+                waypoint.param1,  # Hold Time
+                waypoint.param2,  # Accept Radius
+                waypoint.param3,  # Pass Radius
+                waypoint.param4,  # Yaw
+                waypoint.param5,  # Local X
+                waypoint.param6,  # Local Y
+                waypoint.param7,  # Local Z
+                waypoint.mission_type  # Mission Type
+            )
+
+            if waypoint != mission_items[n - 1]:
+                self.wait_for_command_ack(ack_type="MISSION_REQUEST")
+
+        self.wait_for_command_ack(ack_type="MISSION_ACK")
+
     def send_trajectory_from_file(self, file_path):
         """Read and send a trajectory."""
         import pandas as pd
@@ -485,6 +545,107 @@ class Controller:
                     # self.send_velocity_target(_vx, _vy, _vz)
                     time.sleep(dt)
 
+    def send_mission_from_file(self, file_path):
+        """Read and upload a waypoint mission."""
+
+        import pandas as pd
+        df = pd.read_csv(file_path)
+
+        # Extract coordinates and vectors
+        x = df['x'].values
+        y = df['y'].values
+        z = df['z'].values
+
+        t = df['time'].values
+
+        vx = df['velocity_x'].values
+        vy = df['velocity_y'].values
+        vz = df['velocity_z'].values
+        # speed = df['speed'].values
+        #
+        # ax = df['acceleration_x'].values
+        # ay = df['acceleration_y'].values
+        # az = df['acceleration_z'].values
+        # am = df['acceleration_magnitude'].values
+
+        # Calculate time interval between points
+        time_interval = t[1] - t[0]
+        point_count = len(t)
+
+        __x = 0
+        __y = 0
+        __z = 0
+        dt = 1 / 10
+
+        self.mission_items = []
+
+        self.mission_items.append(MissionItem(0, 0, 0, 0, 1))
+        self.mission_items.append(MissionItem(1, 0, -35.363026, 149.165152, 1))
+        self.mission_items.append(MissionItem(2, 0, 0, 0, 1))
+
+        # for i in range(point_count):
+        #     if args.sim:
+        #         _x = (z[i] - z[0]) * 2.5
+        #         _y = (x[i] - x[0]) * 2.5
+        #         _z = -self.takeoff_altitude
+        #     else:
+        #         _x = 0
+        #         _y = (x[i]) * 2.5 - x[0]
+        #         _z = - self.takeoff_altitude - (z[i] - z[0]) * 2.5
+        #
+        #     # _vx = 0
+        #     # _vy = vx[i] * 10
+        #     # _vz = vz[i] * 10
+        #     # _vx = (_x - __x) / dt
+        #     # _vy = (_y - __y) / dt
+        #     # _vz = (_z - __z) / dt
+        #
+        #     # __x = _x
+        #     # __y = _y
+        #     # __z = _z
+        #     # print(_x, _y, _z)
+        #     self.mission_items.append(MissionItem(i, 0, _x, _y, _z))
+        #     # self.send_position_velocity_target(_z, _y, -1, _vz, _vy, _vx)
+        #     # self.send_velocity_target(_vx, _vy, _vz)
+        #     time.sleep(dt)
+
+        self.upload_mission(self.mission_items)
+
+    def start_mission(self):
+        self.master.mav.command_long_send(
+            self.master.target_system,
+            self.master.target_component,
+            mavutil.mavlink.MAV_CMD_MISSION_START,
+            0,  # confirmation
+            0, 0, 0, 0, 0, 0, 0  # unused parameters
+        )
+        self.wait_for_command_ack(command=mavutil.mavlink.MAV_CMD_MISSION_START)
+
+        for mission_item in self.mission_items:
+            msg = self.master.recv_match(
+                type='MISSION_ITEM_REACHED',
+                condition=f'MISSION_ITEM_REACHED.seq == {mission_item.seq}',
+                blocking=True
+            )
+            self.logger.info(msg)
+
+    def generate_pos_vel_path(self, waypoints, target_speed, dt):
+        path = []
+        for i in range(len(waypoints) - 1):
+            start = np.array(waypoints[i])
+            end = np.array(waypoints[i + 1])
+            direction = end - start
+            distance = np.linalg.norm(direction)
+            if distance == 0:
+                continue
+            direction /= distance
+            velocity = direction * target_speed
+            steps = int(distance / (target_speed * dt))
+            for s in range(steps):
+                pos = start + direction * s * target_speed * dt
+                path.append((pos.tolist(), velocity.tolist()))
+        return path
+
     def test_trajectory(self, x=0, y=0, z=0):
         self.logger.info("Sending")
         points = [(x, y, -self.takeoff_altitude - z)]
@@ -496,6 +657,22 @@ class Controller:
                         return
                     self.send_position_target(point[0], point[1], -1)
                     time.sleep(1 / 10)
+
+    def test_trajectory_2(self):
+        waypoints = [
+            [0, 0, -self.takeoff_altitude],
+            [.2, 0, -self.takeoff_altitude],
+            [0, 0.2, -self.takeoff_altitude],
+            [-.2, 0, -self.takeoff_altitude],
+            [0, -.2, -self.takeoff_altitude],
+            [0, 0, -self.takeoff_altitude],
+        ]
+        trajectory = self.generate_pos_vel_path(waypoints, target_speed=1.0, dt=0.05)
+
+        for pos, vel in trajectory:
+            self.send_position_velocity_target(*pos, *vel)
+            print(*pos, *vel)
+            time.sleep(0.05)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
@@ -627,9 +804,11 @@ class Controller:
         c.takeoff()
         time.sleep(5)
 
-        flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+        # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+        # flight_thread = Thread(target=self.start_mission)
         # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
         # flight_thread = Thread(target=self.test_s_trajectory)
+        flight_thread = Thread(target=self.test_trajectory_2)
         # flight_thread = Thread(target=self.circular_trajectory)
 
         self.running_battery_watcher = True
@@ -664,6 +843,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--voltage", type=float, default=7.4,
                             help="critical battery voltage threshold to land when reached")
     arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
+    arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     args = arg_parser.parse_args()
 
@@ -725,6 +905,9 @@ if __name__ == "__main__":
     if not c.set_mode('GUIDED'):
         pass
         # exit()
+
+    if args.mission:
+        c.send_mission_from_file(args.mission)
 
     if not c.arm_with_retry():
         pass
