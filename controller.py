@@ -811,14 +811,18 @@ class Controller:
 
         time.sleep(3)
         c.takeoff()
-        time.sleep(5)
+        time.sleep(2)
 
-        # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
-        # flight_thread = Thread(target=self.start_mission)
-        # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
-        # flight_thread = Thread(target=self.test_s_trajectory)
-        flight_thread = Thread(target=self.test_trajectory_3)
-        # flight_thread = Thread(target=self.circular_trajectory)
+        if args.simple_takeoff:
+            flight_thread = Thread(target=self.test_trajectory)
+        else:
+            time.sleep(2)
+            flight_thread = Thread(target=self.test_trajectory_3)
+            # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+            # flight_thread = Thread(target=self.start_mission)
+            # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
+            # flight_thread = Thread(target=self.test_s_trajectory)
+            # flight_thread = Thread(target=self.circular_trajectory)
 
         self.running_battery_watcher = True
         battery_thread.start()
