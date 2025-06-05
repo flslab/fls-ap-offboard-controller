@@ -671,6 +671,17 @@ class Controller:
             print(*pos, *vel)
             time.sleep(0.05)
 
+    def test_trajectory_3(self):
+        waypoints = [
+            [0, 0, -self.takeoff_altitude],
+            [-.2, 0, -self.takeoff_altitude],
+            [0, 0, -self.takeoff_altitude]
+        ]
+
+        for pos in waypoints:
+            self.send_position_target(*pos)
+            time.sleep(1)
+
     def test_s_trajectory(self):
         self.logger.info("Sending")
         points = [(0.6, 1.7, 0), (0.35, 2, 0), (0, 1.7, 0), (0.15, 1.2, 0), (0.35, 1, 0),
