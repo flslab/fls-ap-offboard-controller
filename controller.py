@@ -679,7 +679,7 @@ class Controller:
         ]
 
         for pos in waypoints:
-            for i in range(10):
+            for i in range(50):
                 self.send_position_target(*pos)
                 time.sleep(1/10)
 
