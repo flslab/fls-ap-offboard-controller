@@ -816,7 +816,7 @@ class Controller:
         # flight_thread = Thread(target=self.start_mission)
         # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
         # flight_thread = Thread(target=self.test_s_trajectory)
-        flight_thread = Thread(target=self.test_trajectory_2)
+        flight_thread = Thread(target=self.test_trajectory_3)
         # flight_thread = Thread(target=self.circular_trajectory)
 
         self.running_battery_watcher = True
