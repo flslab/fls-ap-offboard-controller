@@ -744,9 +744,48 @@ class Controller:
             [0, -10, 0],
         ] * 5
 
-        for ori in waypoints:
-            for i in range(10):
-                self.send_attitude_target_deg(*ori)
+        # for ori in waypoints:
+        #     for i in range(10):
+        #         self.send_attitude_target_deg(*ori)
+        #         time.sleep(1 / 20)
+
+        angle = 10
+        for j in range(5):
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(i, 0, 0)
+                time.sleep(1 / 20)
+
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(angle - i, 0, 0)
+                time.sleep(1 / 20)
+
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(-i, 0, 0)
+                time.sleep(1 / 20)
+
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(-angle + i, 0, 0)
+                time.sleep(1 / 20)
+
+        for i in range(20):
+            self.send_attitude_target_deg(0, 0, 0)
+            time.sleep(1 / 20)
+
+        for j in range(5):
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(0, i, 0)
+                time.sleep(1 / 20)
+
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(0, angle - i, 0)
+                time.sleep(1 / 20)
+
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(0, -i, 0)
+                time.sleep(1 / 20)
+
+            for i in range(angle + 1):
+                self.send_attitude_target_deg(0, -angle + i, 0)
                 time.sleep(1 / 20)
 
     def test_s_trajectory(self):
