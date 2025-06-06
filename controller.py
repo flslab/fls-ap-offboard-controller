@@ -20,6 +20,25 @@ def truncate(f, n):
     return int(f * 10 ** n) / 10 ** n
 
 
+def euler_to_quaternion(roll, pitch, yaw):
+    """
+    Convert Euler angles (in radians) to quaternion (x, y, z, w).
+    """
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
+
+    w = cr * cp * cy + sr * sp * sy
+    x = sr * cp * cy - cr * sp * sy
+    y = cr * sp * cy + sr * cp * sy
+    z = cr * cp * sy - sr * sp * cy
+
+    return [w, x, y, z]
+
+
 # Class for formatting the Mission Item.
 class MissionItem:
     def __init__(self, i, current, x, y, z):
@@ -447,6 +466,31 @@ class Controller:
             self.initial_yaw, 0  # yaw, yaw_rate
         )
 
+    def send_attitude_target_deg(self, roll_deg, pitch_deg, yaw_deg, thrust=0.5):
+        """
+        Sends a SET_ATTITUDE_TARGET message to ArduPilot using degrees for angles.
+
+        Args:
+            master: pymavlink MAVLink connection (from mavutil.mavlink_connection)
+            roll_deg: desired roll in degrees
+            pitch_deg: desired pitch in degrees
+            yaw_deg: desired yaw in degrees
+            thrust: throttle value between 0.0 and 1.0
+        """
+        # Convert degrees to quaternion
+        q = euler_to_quaternion(roll_deg, pitch_deg, yaw_deg)
+
+        # Send SET_ATTITUDE_TARGET
+        self.master.mav.set_attitude_target_send(
+            int((time.time() - self.start_time) * 1000),
+            self.master.target_system,
+            self.master.target_component,
+            0b00000111,
+            q,  # [w, x, y, z]
+            0, 0, 0,  # body roll/pitch/yaw rates (ignored)
+            thrust  # Thrust (0-1)
+        )
+
     def upload_mission(self, mission_items):
         n = len(mission_items)
 
@@ -685,6 +729,20 @@ class Controller:
         for pos in waypoints:
             for i in range(5):
                 self.send_position_target(*pos)
+                time.sleep(1 / 10)
+
+    def test_trajectory_4(self):
+        waypoints = [
+            [20, 0, 0],
+            [-20, 0, 0],
+        ] * 10 + [[0, 0, 0]] + [
+            [0, 20, 0],
+            [0, -20, 0],
+        ] * 10
+
+        for ori in waypoints:
+            for i in range(5):
+                self.send_attitude_target_deg(*ori)
                 time.sleep(1 / 10)
 
     def test_s_trajectory(self):
