@@ -681,7 +681,7 @@ class Controller:
         for pos in waypoints:
             for i in range(50):
                 self.send_position_target(*pos)
-                time.sleep(1/10)
+                time.sleep(1 / 10)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
@@ -849,6 +849,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action="store_true", help="show debug logs")
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
+    arg_parser.add_argument("--save-camera", action="store_true", help="save camera at 1/10 of original fps")
+    arg_parser.add_argument("--stream-camera", action="store_true", help="stream camera at 1/10 of original fps")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
     arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate")
     arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
@@ -900,17 +902,22 @@ if __name__ == "__main__":
         c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
         c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
         c.running_position_estimation = True
-        c_process = subprocess.Popen([
+        localization_params = [
             "/home/fls/fls-marker-localization/build/eye",
             "-t", str(30 + args.duration),
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
-            "-s",
-            "--save-rate", "10",
             "--brightness", "0.5",
             "--contrast", "2.5",
             "--exposure", "500",
             "--fps", str(args.fps),
-        ])
+        ]
+
+        if args.save_camera:
+            localization_params.extend(["-s", "--save-rate", "10"])
+        if args.stream_camera:
+            localization_params.extend(["--stream", "--stream-rate", "10"])
+
+        c_process = subprocess.Popen(localization_params)
 
         time.sleep(2)
         localize_thread.start()
