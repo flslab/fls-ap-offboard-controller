@@ -386,7 +386,7 @@ class Controller:
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_velocity_target(self, vx, vy, vz):
@@ -674,16 +674,16 @@ class Controller:
     def test_trajectory_3(self):
         waypoints = [
             [0, 0, -self.takeoff_altitude],
-            [-.25, 0, -self.takeoff_altitude],
+            [-.3, 0, -self.takeoff_altitude],
             # [0, 0, -self.takeoff_altitude]
         ] * 10 + [
             [0, 0, -self.takeoff_altitude],
-            [0, -.25, -self.takeoff_altitude],
+            [0, -.3, -self.takeoff_altitude],
             # [0, 0, -self.takeoff_altitude]
         ] * 10
 
         for pos in waypoints:
-            for i in range(10):
+            for i in range(9):
                 self.send_position_target(*pos)
                 time.sleep(1 / 10)
 
