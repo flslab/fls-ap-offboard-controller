@@ -741,7 +741,9 @@ class Controller:
             [-10, 0, 0],
             [-10, 0, 0],
             [10, 0, 0],
-        ] * 5 + [[0, 0, 0]] + [
+        ] * 5
+
+        waypoints_2 = [
             [0, 10, 0],
             [0, -10, 0],
             [0, -10, 0],
@@ -753,6 +755,14 @@ class Controller:
                 self.send_attitude_target_deg(*ori)
                 time.sleep(1 / 20)
 
+        for i in range(20):
+            self.send_velocity_target(0, 0, 0)
+            time.sleep(1 / 20)
+
+        for ori in waypoints_2:
+            for i in range(5):
+                self.send_attitude_target_deg(*ori)
+                time.sleep(1 / 20)
         # angle = 10
         # for j in range(5):
         #     for i in range(angle + 1):
