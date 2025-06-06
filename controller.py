@@ -737,10 +737,10 @@ class Controller:
 
     def test_trajectory_4(self):
         waypoints = [
-            [10, 0, 0],
-            [-10, 0, 0],
             [-10, 0, 0],
             [10, 0, 0],
+            [10, 0, 0],
+            [-10, 0, 0],
         ] * 5
 
         waypoints_2 = [
