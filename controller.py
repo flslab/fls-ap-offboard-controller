@@ -703,7 +703,7 @@ class Controller:
                 for i in range(int(self.flight_duration * 10)):
                     if self.battery_low:
                         return
-                    self.send_position_target(point[0], point[1], -1)
+                    self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 10)
 
     def test_trajectory_2(self):
