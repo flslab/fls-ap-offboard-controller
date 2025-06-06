@@ -478,7 +478,10 @@ class Controller:
             thrust: throttle value between 0.0 and 1.0
         """
         # Convert degrees to quaternion
-        q = euler_to_quaternion(roll_deg, pitch_deg, yaw_deg)
+        roll = math.radians(roll_deg)
+        pitch = math.radians(pitch_deg)
+        yaw = math.radians(yaw_deg)
+        q = euler_to_quaternion(roll, pitch, yaw)
 
         # Send SET_ATTITUDE_TARGET
         self.master.mav.set_attitude_target_send(
