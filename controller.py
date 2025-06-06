@@ -879,7 +879,7 @@ class Controller:
             flight_thread = Thread(target=self.test_trajectory)
         else:
             time.sleep(2)
-            flight_thread = Thread(target=self.test_trajectory_3)
+            flight_thread = Thread(target=self.test_trajectory_4)
             # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
