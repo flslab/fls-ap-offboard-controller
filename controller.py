@@ -720,18 +720,14 @@ class Controller:
             time.sleep(0.05)
 
     def test_trajectory_3(self):
-        waypoints = [[0, 0, -self.takeoff_altitude]]+ [
-            [.2, 0, -self.takeoff_altitude],
-            [-.2, 0, -self.takeoff_altitude],
-            # [0, 0, -self.takeoff_altitude]
-        ] * 10 + [[0, 0, -self.takeoff_altitude]] + [
+        waypoints = [
+            [0, 0, -self.takeoff_altitude],
             [0, .2, -self.takeoff_altitude],
-            [0, -.2, -self.takeoff_altitude],
-            # [0, 0, -self.takeoff_altitude]
-        ] * 10
+            [0, 0, -self.takeoff_altitude]
+        ]
 
         for pos in waypoints:
-            for i in range(5):
+            for i in range(50):
                 self.send_position_target(*pos)
                 time.sleep(1 / 10)
 
@@ -936,7 +932,7 @@ class Controller:
             flight_thread = Thread(target=self.test_trajectory)
         else:
             time.sleep(2)
-            flight_thread = Thread(target=self.test_trajectory_4)
+            flight_thread = Thread(target=self.test_trajectory_3)
             # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
