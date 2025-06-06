@@ -744,9 +744,9 @@ class Controller:
         ] * 10
 
         for ori in waypoints:
-            for i in range(5):
+            for i in range(10):
                 self.send_attitude_target_deg(*ori)
-                time.sleep(1 / 10)
+                time.sleep(1 / 20)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
