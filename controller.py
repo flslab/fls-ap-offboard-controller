@@ -672,11 +672,11 @@ class Controller:
             time.sleep(0.05)
 
     def test_trajectory_3(self):
-        waypoints = [0, 0, -self.takeoff_altitude] + [
+        waypoints = [[0, 0, -self.takeoff_altitude]]+ [
             [.2, 0, -self.takeoff_altitude],
             [-.2, 0, -self.takeoff_altitude],
             # [0, 0, -self.takeoff_altitude]
-        ] * 10 + [0, 0, -self.takeoff_altitude] + [
+        ] * 10 + [[0, 0, -self.takeoff_altitude]] + [
             [0, .2, -self.takeoff_altitude],
             [0, -.2, -self.takeoff_altitude],
             # [0, 0, -self.takeoff_altitude]
