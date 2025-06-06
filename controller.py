@@ -674,12 +674,16 @@ class Controller:
     def test_trajectory_3(self):
         waypoints = [
             [0, 0, -self.takeoff_altitude],
-            [-.2, 0, -self.takeoff_altitude],
-            [0, 0, -self.takeoff_altitude]
-        ]
+            [-.25, 0, -self.takeoff_altitude],
+            # [0, 0, -self.takeoff_altitude]
+        ] * 10 + [
+            [0, 0, -self.takeoff_altitude],
+            [0, -.25, -self.takeoff_altitude],
+            # [0, 0, -self.takeoff_altitude]
+        ] * 10
 
         for pos in waypoints:
-            for i in range(50):
+            for i in range(10):
                 self.send_position_target(*pos)
                 time.sleep(1 / 10)
 
