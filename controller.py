@@ -755,7 +755,7 @@ class Controller:
                 self.send_attitude_target_deg(*ori)
                 time.sleep(1 / 20)
 
-        for i in range(20):
+        for i in range(30):
             self.send_velocity_target(0, 0, 0)
             time.sleep(1 / 20)
 
