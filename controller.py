@@ -483,6 +483,7 @@ class Controller:
         yaw = math.radians(yaw_deg)
         q = euler_to_quaternion(roll, pitch, yaw)
 
+        print(q)
         # Send SET_ATTITUDE_TARGET
         self.master.mav.set_attitude_target_send(
             int((time.time() - self.start_time) * 1000),
@@ -738,10 +739,10 @@ class Controller:
         waypoints = [
             [10, 0, 0],
             [-10, 0, 0],
-        ] * 10 + [[0, 0, 0]] + [
+        ] * 5 + [[0, 0, 0]] + [
             [0, 10, 0],
             [0, -10, 0],
-        ] * 10
+        ] * 5
 
         for ori in waypoints:
             for i in range(10):
