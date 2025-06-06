@@ -61,7 +61,7 @@ class Controller:
     def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
                  sim=False,
                  device="/dev/ttyAMA0",
-                 baudrate=57600):
+                 baudrate=115200):
         self.device = device
         self.baudrate = baudrate
         self.master = None
@@ -736,11 +736,11 @@ class Controller:
 
     def test_trajectory_4(self):
         waypoints = [
-            [20, 0, 0],
-            [-20, 0, 0],
+            [10, 0, 0],
+            [-10, 0, 0],
         ] * 10 + [[0, 0, 0]] + [
-            [0, 20, 0],
-            [0, -20, 0],
+            [0, 10, 0],
+            [0, -10, 0],
         ] * 10
 
         for ori in waypoints:
