@@ -628,7 +628,7 @@ class Controller:
                 vy = speed * (math.cos(t) ** 2 - math.sin(t) ** 2)
                 vz = 0
 
-                self.send_position_velocity_target(x, y, -self.takeoff_altitude, vx, vy, vz)
+                self.send_position_velocity_target(0, x, -self.takeoff_altitude-y, 0, vx, -vy)
                 time.sleep(0.1)
 
     def send_mission_from_file(self, file_path):
