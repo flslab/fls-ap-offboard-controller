@@ -568,12 +568,12 @@ class Controller:
         for j in range(3):
             for i in range(point_count):
                 _x = 0
-                _y = (x[-1 -i]) * y_scale - x[-1] * y_scale / 2
-                _z = - self.takeoff_altitude - (z[-1 -i] - z[-1]) * z_scale
+                _y = (x[i]) * y_scale - x[0] * y_scale / 2
+                _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
 
                 _vx = 0
-                _vy = vx[-1 -i] * y_scale
-                _vz = vz[-1 -i] * z_scale
+                _vy = vx[i] * y_scale
+                _vz = vz[i] * z_scale
 
                 for k in range(repeat_point):
                     if self.battery_low:
