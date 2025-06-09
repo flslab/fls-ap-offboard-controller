@@ -37,14 +37,21 @@ class MovingDotLED(threading.Thread):
             self.pixels[i] = color
         self.pixels.show()
 
+    def turn_on(self):
+        # self.leds[0] = self.color
+        self.leds[11] = self.color
+        # self.leds[22] = self.color
+        self.leds[34] = self.color
+        self.draw_frame()
+
     def run(self):
         self.running = True
 
-        self.leds[0] = self.color
-        self.leds[11] = self.color
-        self.leds[22] = self.color
-        self.leds[34] = self.color
-        self.draw_frame()
+        # # self.leds[0] = self.color
+        # self.leds[11] = self.color
+        # # self.leds[22] = self.color
+        # self.leds[34] = self.color
+        # self.draw_frame()
 
         # while self.running:
         #     for pos in range(self.num_pixels):

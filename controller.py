@@ -557,41 +557,42 @@ class Controller:
         # am = df['acceleration_magnitude'].values
 
         # Calculate time interval between points
-        time_interval = t[1] - t[0]
+        dt = t[1] - t[0]
         point_count = len(t)
+        repeat_point = 1
 
-        __x = 0
-        __y = 0
-        __z = 0
-        dt = 1 / 10
+        y_scale = 1
+        z_scale = 1
+
         # Send each point in the trajectory
         for j in range(1):
             for i in range(point_count):
-                for k in range(3):
+                _x = 0
+                _y = (x[i]) * y_scale - x[0] * y_scale / 2
+                _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
+
+                _vx = 0
+                _vy = vx[i] * y_scale
+                _vz = vz[i] * z_scale
+
+                for k in range(repeat_point):
                     if self.battery_low:
                         return
-                    _x = 0
-                    _y = (x[i]) * 2.5 - x[0]
-                    _z = - self.takeoff_altitude - (z[i] - z[0]) * 2.5
 
-                    _vx = 0
-                    _vy = vx[i] * 10
-                    _vz = vz[i] * 10
-                    # _vx = (_x - __x) / dt
-                    # _vy = (_y - __y) / dt
-                    # _vz = (_z - __z) / dt
+                    if i == 0:
+                        for _ in range(80):
+                            self.send_position_target(_x, _y, _z)
+                            time.sleep(dt)
 
-                    # __x = _x
-                    # __y = _y
-                    # __z = _z
-                    # print(_x, _y, _z)
-                    if args.sim:
-                        self.send_position_target(_z, _y, -1)
-                    else:
-                        self.send_position_target(_x, _y, _z)
-                    # self.send_position_velocity_target(_z, _y, -1, _vz, _vy, _vx)
+                        led.turn_on()
+
+                    # self.send_position_target(_x, _y, _z)
+                    self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
                     # self.send_velocity_target(_vx, _vy, _vz)
-                    time.sleep(dt)
+
+                    time.sleep(dt / repeat_point)
+
+        led.clear()
 
     def send_mission_from_file(self, file_path):
         """Read and upload a waypoint mission."""
@@ -921,6 +922,24 @@ class Controller:
 
             time.sleep(1 / args.fps)
 
+    def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
+        """
+        Sends a LANDING_TARGET MAVLink message to ArduPilot.
+        """
+        self.master.mav.landing_target_send(
+            int((time.time() - self.start_time) * 1000000),  # time_usec: timestamp in microseconds
+            0,  # target_num (not used)
+            mavutil.mavlink.MAV_FRAME_BODY_FRD,  # frame: coordinate frame
+            angle_x,  # angle_x: X-axis angular offset
+            angle_y,  # angle_y: Y-axis angular offset
+            distance,  # distance to target in meters
+            0, 0,  # size_x, size_y (not used)
+            x, y, z,
+            0,  # q (not used)
+            0,  # type (not used)
+            1,  # 0 if angle_x, angle_y should be used. 1 if x, y, z fields contain position information
+        )
+
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
 
@@ -930,10 +949,11 @@ class Controller:
 
         if args.simple_takeoff:
             flight_thread = Thread(target=self.test_trajectory)
+        elif args.trajectory:
+            flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
         else:
             time.sleep(2)
             flight_thread = Thread(target=self.test_trajectory_3)
-            # flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
