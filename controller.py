@@ -1035,6 +1035,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
     arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
+    arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
     args = arg_parser.parse_args()
 
     log_level = logging.DEBUG if args.debug else logging.INFO
