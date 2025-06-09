@@ -958,6 +958,7 @@ class Controller:
         if args.simple_takeoff:
             flight_thread = Thread(target=self.test_trajectory)
         elif args.trajectory:
+            time.sleep(2)
             flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
         else:
             time.sleep(2)
