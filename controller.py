@@ -220,7 +220,7 @@ class Controller:
     def land(self):
         self.logger.info("Prepare to land")
         for _ in range(40):
-            self.send_position_target(0, 0, self.takeoff_altitude)
+            self.send_position_target(0, 0, -self.takeoff_altitude)
             time.sleep(1/10)
 
         self.master.mav.command_long_send(
