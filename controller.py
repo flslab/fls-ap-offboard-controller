@@ -565,7 +565,7 @@ class Controller:
         z_scale = 1
 
         # Send each point in the trajectory
-        for j in range(1):
+        for j in range(3):
             for i in range(point_count):
                 _x = 0
                 _y = (x[i]) * y_scale - x[0] * y_scale / 2
@@ -581,7 +581,7 @@ class Controller:
 
                     if i == 0:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
-                        for _ in range(80):
+                        for _ in range(40):
                             self.send_position_target(_x, _y, _z)
                             time.sleep(dt)
 
@@ -594,7 +594,8 @@ class Controller:
 
                     time.sleep(dt / repeat_point)
 
-        led.clear()
+            led.clear()
+
         self.logger.info(f"Path completed")
 
         self.logger.info("Prepare to land")
