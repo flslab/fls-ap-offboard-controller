@@ -853,8 +853,8 @@ class Controller:
 
         while self.running_position_estimation:
             data = shm_map[:position_size]  # Read 28 bytes
-            valid = struct.unpack("<?", data[:1])[0]  # Extract the validity flag (1 byte)
-
+            valid = struct.unpack("<?", data[3:4])[0]  # Extract the validity flag (1 byte)
+            print(valid)
             if valid:
                 x, y, z, roll, pitch, yaw = struct.unpack("<6f", data[4:28])
                 # x, y, z = struct.unpack("<3f", data[4:16])
