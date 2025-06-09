@@ -598,7 +598,7 @@ class Controller:
         self.logger.info(f"Path completed")
 
         self.logger.info("Prepare to land")
-        for _ in range(20):
+        for _ in range(10):
             self.send_position_target(0, 0, -self.takeoff_altitude)
             time.sleep(1 / 10)
 
