@@ -561,7 +561,7 @@ class Controller:
         point_count = len(t)
         repeat_point = 1
 
-        y_scale = 1
+        y_scale = 1.5
         z_scale = 1
 
         # Send each point in the trajectory
