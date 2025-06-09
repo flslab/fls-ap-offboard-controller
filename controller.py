@@ -603,6 +603,34 @@ class Controller:
             self.send_position_target(0, 0, -self.takeoff_altitude)
             time.sleep(1 / 10)
 
+    def fly_figure_eight(self, rounds=3, radius=.2, speed=.2):
+        for _ in range(20):
+            self.send_position_target(0, 0, -self.takeoff_altitude)
+            time.sleep(0.1)
+
+        omega = speed / radius
+
+        for n in range(rounds):
+            start_time = time.time()
+            while True:
+                elapsed_time = time.time() - start_time
+                t = omega * elapsed_time
+
+                if t > 4 * math.pi:
+                    break
+
+                # Parametric equations for a figure-8
+                x = radius * math.sin(t)
+                y = radius * math.sin(t) * math.cos(t)
+
+                # Derivatives for velocity
+                vx = speed * math.cos(t)
+                vy = speed * (math.cos(t) ** 2 - math.sin(t) ** 2)
+                vz = 0
+
+                self.send_position_velocity_target(x, y, -self.takeoff_altitude, vx, vy, vz)
+                time.sleep(0.1)
+
     def send_mission_from_file(self, file_path):
         """Read and upload a waypoint mission."""
 
@@ -958,6 +986,8 @@ class Controller:
 
         if args.simple_takeoff:
             flight_thread = Thread(target=self.test_trajectory)
+        elif args.fig8:
+            flight_thread = Thread(target=self.fly_figure_eight)
         elif args.trajectory:
             time.sleep(2)
             flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
