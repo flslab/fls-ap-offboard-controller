@@ -594,14 +594,13 @@ class Controller:
 
                     time.sleep(dt / repeat_point)
 
+        led.clear()
         self.logger.info(f"Path completed")
 
         self.logger.info("Prepare to land")
-        for _ in range(40):
+        for _ in range(20):
             self.send_position_target(0, 0, -self.takeoff_altitude)
             time.sleep(1 / 10)
-
-        led.clear()
 
     def send_mission_from_file(self, file_path):
         """Read and upload a waypoint mission."""
