@@ -117,7 +117,7 @@ class Controller:
         msg = self.master.recv_match(type='ATTITUDE', blocking=True)
         if msg:
             yaw_rad = msg.yaw
-            self.logger.debug(f"initial yaw in radians: {yaw_rad}")
+            self.logger.info(f"initial yaw in radians: {yaw_rad}")
             self.initial_yaw = yaw_rad
 
     def reboot(self):
