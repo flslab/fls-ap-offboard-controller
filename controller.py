@@ -218,11 +218,6 @@ class Controller:
 
     # Land the drone
     def land(self):
-        self.logger.info("Prepare to land")
-        for _ in range(40):
-            self.send_position_target(0, 0, -self.takeoff_altitude / 2)
-            time.sleep(1/10)
-
         self.master.mav.command_long_send(
             self.master.target_system, self.master.target_component,
             mavutil.mavlink.MAV_CMD_NAV_LAND,
@@ -430,7 +425,7 @@ class Controller:
             0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            0, 0  # yaw, yaw_rate
+            self.initial_yaw, 0  # yaw, yaw_rate
         )
 
     def send_position_velocity_target(self, x, y, z, vx, vy, vz):
@@ -600,6 +595,12 @@ class Controller:
                     time.sleep(dt / repeat_point)
 
         self.logger.info(f"Path completed")
+
+        self.logger.info("Prepare to land")
+        for _ in range(40):
+            self.send_position_target(0, 0, -self.takeoff_altitude)
+            time.sleep(1 / 10)
+
         led.clear()
 
     def send_mission_from_file(self, file_path):
