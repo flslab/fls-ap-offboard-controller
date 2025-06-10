@@ -572,7 +572,7 @@ class Controller:
         for j in range(3):
             for i in range(point_count):
                 _x = 0
-                _y = (x[i] - x[0] + range_x/2) * y_scale
+                _y = (x[i] - x[0] - range_x/2) * y_scale
                 _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
 
                 _vx = 0
