@@ -564,11 +564,15 @@ class Controller:
         y_scale = 1
         z_scale = 1
 
+        min_x = min(x)
+        max_x = max(x)
+        range_x = max_x - min_x
+
         # Send each point in the trajectory
         for j in range(3):
             for i in range(point_count):
                 _x = 0
-                _y = (x[i]) * y_scale - x[0] * y_scale / 2
+                _y = (x[i] - x[0] - range_x/2) * y_scale
                 _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
 
                 _vx = 0
