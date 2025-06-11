@@ -11,6 +11,7 @@ import numpy as np
 from pymavlink import mavutil
 
 from log import LoggerFactory
+from vicon import ViconWrapper
 
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
@@ -881,12 +882,32 @@ class Controller:
             self.send_position_target(x, y, z)
             time.sleep(1 / frequency)
 
-    def send_position_estimation(self):
+    def send_position_estimate(self, x, y, z):
+        covariance = np.array([0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0,
+                               0, 0, 0, 0,
+                               0, 0, 0,
+                               0, 0,
+                               0])
+        reset_counter = 1
+
+        self.master.mav.vision_position_estimate_send(
+            int((time.time()) * 1000000),
+            x,  # X y
+            y,  # Y -x
+            z,  # Z -z (down is negative)
+            0,  # rpy_rad[0],  # Roll angle
+            0,  # rpy_rad[1],  # Pitch angle
+            0,  # rpy_rad[2],  # Yaw angle
+            covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
+            reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
+        )
+
+    def run_camera_localization(self):
         position_size = 1 + 3 + 6 * 4  # 1 byte + 3 byte padding + 6 floats (4 bytes each)
         shm_name = "/pos_shared_mem"
         shm_fd = open(f"/dev/shm{shm_name}", "r+b")  # Open shared memory
         shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
-        reset_counter = 1
 
         while self.running_position_estimation:
             data = shm_map[:position_size]  # Read 28 bytes
@@ -914,24 +935,8 @@ class Controller:
                 #                        cov_twist, 0,
                 #                        cov_twist])
 
-                covariance = np.array([0, 0, 0, 0, 0, 0,
-                                       0, 0, 0, 0, 0,
-                                       0, 0, 0, 0,
-                                       0, 0, 0,
-                                       0, 0,
-                                       0])
+                self.send_position_estimate(y, -x, -z)
 
-                self.master.mav.vision_position_estimate_send(
-                    int((time.time()) * 1000000),
-                    y,  # X y
-                    -x,  # Y -x
-                    -z,  # Z -z (down is negative)
-                    0,  # rpy_rad[0],  # Roll angle
-                    0,  # rpy_rad[1],  # Pitch angle
-                    0,  # rpy_rad[2],  # Yaw angle
-                    covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
-                    reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
-                )
                 # self.master.mav.vision_position_estimate_send(
                 #     int((time.time()) * 1000000),
                 #     0,  # X y
@@ -943,9 +948,9 @@ class Controller:
                 #     covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
                 #     reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
                 # )
-                q = [1.0, 0.0, 0.0, 0.0]  # identity quaternion (w, x, y, z)
-                pose_cov = [0.0] * 21
-                vel_cov = [0.0] * 21
+                # q = [1.0, 0.0, 0.0, 0.0]  # identity quaternion (w, x, y, z)
+                # pose_cov = [0.0] * 21
+                # vel_cov = [0.0] * 21
                 # self.master.mav.odometry_send(
                 #     time_usec=usec,
                 #     frame_id=1,          # MAV_FRAME_LOCAL_NED
@@ -967,6 +972,9 @@ class Controller:
                 # print("Invalid data received")
 
             time.sleep(1 / args.fps)
+
+    def send_vicon_position(self, x, y, z):
+        self.send_position_estimate(y/1000, x/1000, -z/1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
@@ -1022,6 +1030,13 @@ class Controller:
         if args.led:
             led.stop()
 
+        if args.localize:
+            self.running_position_estimation = False
+            localize_thread.join()
+
+        if args.vicon:
+            vicon_thread.stop()
+
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
@@ -1033,6 +1048,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action="store_true", help="show debug logs")
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
+    arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon")
     arg_parser.add_argument("--save-camera", action="store_true", help="save camera at 1/10 of original fps")
     arg_parser.add_argument("--stream-camera", action="store_true", help="stream camera at 1/10 of original fps")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
@@ -1078,9 +1094,12 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
-    localize_thread = Thread(target=c.send_position_estimation)
+    if args.vicon:
+        vicon_thread = ViconWrapper(c.send_vicon_position)
+        vicon_thread.start()
 
     if args.localize:
+        localize_thread = Thread(target=c.run_camera_localization)
         lat = 12345
         lon = 12345
         alt = 0
@@ -1127,7 +1146,3 @@ if __name__ == "__main__":
     # time.sleep(10)
     c.start_flight()
     c.stop()
-
-    if args.localize:
-        c.running_position_estimation = False
-        localize_thread.join()
