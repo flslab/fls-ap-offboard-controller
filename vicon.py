@@ -1,7 +1,11 @@
 # File: client.py
 # Final version fixing the NumPy boolean ambiguity error
+import json
+import os.path
 import threading
 import time
+from datetime import datetime
+
 from pyvicon_datastream import PyViconDatastream, StreamMode, Direction
 
 from log import LoggerFactory
@@ -17,6 +21,7 @@ class ViconWrapper(threading.Thread):
         self.running = False
         self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
         self.callback = callback
+        self.position_log = []
 
     def stop(self):
         self.running = False
@@ -74,6 +79,11 @@ class ViconWrapper(threading.Thread):
                                     # We only need to check the occlusion flag.
                                     if translation is not None:  # This means data exists and is not occluded
                                         pos_x, pos_y, pos_z = translation
+                                        self.position_log.append({
+                                            "frame_id": frame_num,
+                                            "tvec": [pos_x, pos_y, pos_z],
+                                            "time": time.time() * 1000
+                                        })
                                         self.callback(pos_x, pos_y, pos_z)
                                         self.logger.debug(
                                             f"    Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
@@ -93,6 +103,13 @@ class ViconWrapper(threading.Thread):
             self.logger.error(f"An unexpected error occurred: {e}")
 
         finally:
+            now = datetime.now()
+            formatted = now.strftime("%H_%M_%S_%m_%d_%Y")
+            file_path = os.path.join("logs", f"vicon_{formatted}.json")
+            with open(file_path) as f:
+                json.dump({"frames": self.position_log}, f)
+            self.logger.info(f"Vicon log saved in {file_path}")
+
             if client.is_connected():
                 client.disconnect()
                 self.logger.info("Disconnected from Vicon server.")
