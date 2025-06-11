@@ -600,6 +600,9 @@ class Controller:
 
                 time.sleep(dt)
 
+                if 'loop' in args.trajectory and i == 239:
+                    led.clear()
+
             led.clear()
             if 'loop' not in args.trajectory:
                 for _ in range(20):
