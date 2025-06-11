@@ -12,10 +12,10 @@ VICON_ADDRESS = f"{VICON_PC_IP}:801"  # Combine IP and Port into one string
 
 
 class ViconWrapper(threading.Thread):
-    def __init__(self, callback):
+    def __init__(self, callback, log_level):
         super().__init__()
         self.running = False
-        self.logger = LoggerFactory("Vicon").get_logger()
+        self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
         self.callback = callback
 
     def run(self):

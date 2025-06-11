@@ -1095,7 +1095,7 @@ if __name__ == "__main__":
         exit()
 
     if args.vicon:
-        vicon_thread = ViconWrapper(c.send_vicon_position)
+        vicon_thread = ViconWrapper(c.send_vicon_position, log_level=log_level)
         vicon_thread.start()
 
     if args.localize:
