@@ -585,8 +585,8 @@ class Controller:
                 if i == 0:
                     if j == 0 or 'loop' not in args.trajectory:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
-                        for _ in range(40):
-                            # self.send_position_target(_x, _y, _z)
+                        for _ in range(60):
+                            # wait at the start
                             self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
                             time.sleep(dt)
 
@@ -600,6 +600,10 @@ class Controller:
                 time.sleep(dt)
 
             led.clear()
+            for _ in range(60):
+                # wait at the end
+                self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
+                time.sleep(dt)
 
         self.logger.info(f"Path completed")
         self.logger.info("Prepare to land")
