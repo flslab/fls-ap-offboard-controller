@@ -583,7 +583,7 @@ class Controller:
                 _vz = vz[i] * z_scale
 
                 if i == 0:
-                    if j == 0:
+                    if j == 0 or 'loop' not in args.trajectory:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
                         for _ in range(40):
                             # self.send_position_target(_x, _y, _z)
@@ -599,8 +599,7 @@ class Controller:
 
                 time.sleep(dt)
 
-                if i == 239:
-                    led.clear()
+            led.clear()
 
         self.logger.info(f"Path completed")
         self.logger.info("Prepare to land")
