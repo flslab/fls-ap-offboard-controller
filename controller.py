@@ -585,7 +585,7 @@ class Controller:
 
                     if i == 0:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
-                        for _ in range(20):
+                        for _ in range(60):
                             # self.send_position_target(_x, _y, _z)
                             self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
                             time.sleep(dt)
