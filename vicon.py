@@ -18,6 +18,10 @@ class ViconWrapper(threading.Thread):
         self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
         self.callback = callback
 
+    def stop(self):
+        self.running = False
+        self.join()
+
     def run(self):
         self.running = True
         # Create an instance of the class directly
