@@ -571,6 +571,9 @@ class Controller:
         # Send each point in the trajectory
         for j in range(3):
             for i in range(point_count):
+                if self.battery_low:
+                    return
+
                 _x = 0
                 _y = (x[i] - x[0] - range_x / 2) * y_scale
                 _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
@@ -579,30 +582,27 @@ class Controller:
                 _vy = vx[i] * y_scale
                 _vz = vz[i] * z_scale
 
-                for k in range(repeat_point):
-                    if self.battery_low:
-                        return
-
-                    if i == 0:
+                if i == 0:
+                    if j == 0:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
-                        for _ in range(60):
+                        for _ in range(40):
                             # self.send_position_target(_x, _y, _z)
                             self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
                             time.sleep(dt)
 
-                        led.turn_on()
-                        self.logger.info(f"Start to follow the path")
+                    led.turn_on()
+                    self.logger.info(f"Start to follow the path")
 
-                    # self.send_position_target(_x, _y, _z)
-                    self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
-                    # self.send_velocity_target(_vx, _vy, _vz)
+                # self.send_position_target(_x, _y, _z)
+                self.send_position_velocity_target(_x, _y, _z, _vx, _vy, _vz)
+                # self.send_velocity_target(_vx, _vy, _vz)
 
-                    time.sleep(dt / repeat_point)
+                time.sleep(dt)
 
-            led.clear()
+                if i == 239:
+                    led.clear()
 
         self.logger.info(f"Path completed")
-
         self.logger.info("Prepare to land")
         for _ in range(10):
             self.send_position_target(0, 0, -self.takeoff_altitude)
