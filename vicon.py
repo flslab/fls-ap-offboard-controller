@@ -106,7 +106,7 @@ class ViconWrapper(threading.Thread):
             now = datetime.now()
             formatted = now.strftime("%H_%M_%S_%m_%d_%Y")
             file_path = os.path.join("logs", f"vicon_{formatted}.json")
-            with open(file_path) as f:
+            with open(file_path, "w") as f:
                 json.dump({"frames": self.position_log}, f)
             self.logger.info(f"Vicon log saved in {file_path}")
 
