@@ -572,7 +572,7 @@ class Controller:
         for j in range(3):
             for i in range(point_count):
                 _x = 0
-                _y = (x[i] - x[0] - range_x/2) * y_scale
+                _y = (x[i] - x[0] - range_x / 2) * y_scale
                 _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
 
                 _vx = 0
@@ -585,8 +585,8 @@ class Controller:
 
                     if i == 0:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
-                        for _ in range(20 + 100):
-                            self.send_position_target(_x, _y, _z)
+                        for _ in range(40):
+                            self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
                             time.sleep(dt)
 
                         led.turn_on()
@@ -599,7 +599,6 @@ class Controller:
                     time.sleep(dt / repeat_point)
 
             led.clear()
-            self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
 
         self.logger.info(f"Path completed")
 
@@ -633,7 +632,7 @@ class Controller:
                 vy = speed * (math.cos(t) ** 2 - math.sin(t) ** 2)
                 vz = 0
 
-                self.send_position_velocity_target(0, x, -self.takeoff_altitude-y, 0, vx, -vy)
+                self.send_position_velocity_target(0, x, -self.takeoff_altitude - y, 0, vx, -vy)
                 time.sleep(0.1)
 
     def send_mission_from_file(self, file_path):
@@ -751,16 +750,17 @@ class Controller:
 
     def test_trajectory_2(self):
         waypoints = [
-            [0, 0, -self.takeoff_altitude],
-            [-.2, 0, -self.takeoff_altitude],
-            [-.2, 0, -self.takeoff_altitude]
+            [0, -.1, -self.takeoff_altitude],
+            [0, -.1, -self.takeoff_altitude + .6],
+            [0, .1, -self.takeoff_altitude + .6]
         ]
-        trajectory = self.generate_pos_vel_path(waypoints, target_speed=1.0, dt=0.05)
+        # trajectory = self.generate_pos_vel_path(waypoints, target_speed=1.0, dt=0.05)
 
-        for pos, vel in trajectory:
-            self.send_position_velocity_target(*pos, *vel)
-            print(*pos, *vel)
-            time.sleep(0.05)
+        for _ in range(3):
+            for p in waypoints:
+                for i in range(50):
+                    self.send_position_target(*p)
+                    time.sleep(1 / 10)
 
     def test_trajectory_3(self):
         waypoints = [
@@ -776,18 +776,18 @@ class Controller:
 
     def test_trajectory_4(self):
         waypoints = [
-            [-10, 0, 0],
-            [10, 0, 0],
-            [10, 0, 0],
-            [-10, 0, 0],
-        ] * 5
+                        [-10, 0, 0],
+                        [10, 0, 0],
+                        [10, 0, 0],
+                        [-10, 0, 0],
+                    ] * 5
 
         waypoints_2 = [
-            [0, 10, 0],
-            [0, -10, 0],
-            [0, -10, 0],
-            [0, 10, 0],
-        ] * 5
+                          [0, 10, 0],
+                          [0, -10, 0],
+                          [0, -10, 0],
+                          [0, 10, 0],
+                      ] * 5
 
         for ori in waypoints:
             for i in range(5):
