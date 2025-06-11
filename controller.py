@@ -585,8 +585,9 @@ class Controller:
 
                     if i == 0:
                         self.logger.info(f"Go to start coordinates: {_x}, {_y}, {_z}")
-                        for _ in range(40):
-                            self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
+                        for _ in range(20):
+                            self.send_position_target(_x, _y, _z)
+                            # self.send_position_velocity_target(_x, _y, _z, 0, 0, 0)
                             time.sleep(dt)
 
                         led.turn_on()
