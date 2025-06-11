@@ -1099,7 +1099,7 @@ if __name__ == "__main__":
         vicon_thread.start()
 
     if args.localize:
-        localize_thread = Thread(target=c.run_camera_localization)
+        localize_thread = Thread(target=c.send_vicon_position)
         lat = 12345
         lon = 12345
         alt = 0
