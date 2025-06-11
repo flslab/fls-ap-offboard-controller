@@ -46,7 +46,7 @@ class ViconWrapper(threading.Thread):
             client.set_axis_mapping(Direction.Forward, Direction.Left, Direction.Up)
 
             # Loop indefinitely until interrupted
-            while True:
+            while self.running:
                 # Get a frame of data
                 if client.get_frame():
                     frame_num = client.get_frame_number()
