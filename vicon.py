@@ -1,5 +1,3 @@
-# File: client.py
-# Final version fixing the NumPy boolean ambiguity error
 import json
 import os.path
 import threading
@@ -10,9 +8,8 @@ from pyvicon_datastream import PyViconDatastream, StreamMode, Direction
 
 from log import LoggerFactory
 
-# --- Configuration ---
-VICON_PC_IP = '192.168.1.39'  # Your Vicon PC's IP address
-VICON_ADDRESS = f"{VICON_PC_IP}:801"  # Combine IP and Port into one string
+VICON_PC_IP = '192.168.1.39'
+VICON_ADDRESS = f"{VICON_PC_IP}:801"
 
 
 class ViconWrapper(threading.Thread):
@@ -29,7 +26,7 @@ class ViconWrapper(threading.Thread):
 
     def run(self):
         self.running = True
-        # Create an instance of the class directly
+
         client = PyViconDatastream()
         self.logger.info("Client object created.")
 
@@ -38,26 +35,21 @@ class ViconWrapper(threading.Thread):
             client.connect(VICON_ADDRESS)
             self.logger.info("Connection successful!")
 
-            # Enable required data types
             client.enable_marker_data()
             client.enable_segment_data()
             self.logger.info("Marker and Segment data enabled.")
 
-            # Set the streaming mode using the imported StreamMode enum
             client.set_stream_mode(StreamMode.ClientPull)
             self.logger.info("Stream mode set to ClientPull.")
 
-            # Set axis mapping for standard coordinate systems (optional but recommended)
+            # Set axis mapping for standard coordinate systems
             client.set_axis_mapping(Direction.Forward, Direction.Left, Direction.Up)
 
-            # Loop indefinitely until interrupted
             while self.running:
-                # Get a frame of data
                 if client.get_frame():
                     frame_num = client.get_frame_number()
                     self.logger.debug(f"--- Frame {frame_num} ---")
 
-                    # Get the number of subjects
                     subject_count = client.get_subject_count()
                     if subject_count > 0:
                         # Loop through subjects by index
@@ -73,10 +65,6 @@ class ViconWrapper(threading.Thread):
                                 try:
                                     translation = client.get_segment_global_translation(subject_name, root_segment)
 
-                                    # CORRECTED LOGIC:
-                                    # translation[0] is the numpy array (X, Y, Z)
-                                    # translation[1] is the occlusion flag (True if not occluded, False if occluded)
-                                    # We only need to check the occlusion flag.
                                     if translation is not None:  # This means data exists and is not occluded
                                         pos_x, pos_y, pos_z = translation
                                         self.position_log.append({
