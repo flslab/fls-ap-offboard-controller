@@ -1,4 +1,5 @@
 import json
+import logging
 import os.path
 import threading
 import time
@@ -13,7 +14,7 @@ VICON_ADDRESS = f"{VICON_PC_IP}:801"
 
 
 class ViconWrapper(threading.Thread):
-    def __init__(self, callback, log_level):
+    def __init__(self, callback=None, log_level=logging.INFO):
         super().__init__()
         self.running = False
         self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
@@ -72,7 +73,8 @@ class ViconWrapper(threading.Thread):
                                             "tvec": [pos_x, pos_y, pos_z],
                                             "time": time.time() * 1000
                                         })
-                                        self.callback(pos_x, pos_y, pos_z)
+                                        if callable(self.callback):
+                                            self.callback(pos_x, pos_y, pos_z)
                                         self.logger.debug(
                                             f"    Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
                                     else:

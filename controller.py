@@ -576,7 +576,7 @@ class Controller:
                     return
 
                 _x = 0
-                _y = (x[i] - x[0] - range_x / 2) * y_scale
+                _y = (x[i] - range_x / 2) * y_scale
                 _z = - self.takeoff_altitude - (z[i] - z[0]) * z_scale
 
                 _vx = 0
@@ -600,8 +600,8 @@ class Controller:
 
                 time.sleep(dt)
 
-                if 'loop' in args.trajectory and i == 239:
-                    led.clear()
+                # if 'loop' in args.trajectory and i == 239:
+                #     led.clear()
 
             led.clear()
             if 'loop' not in args.trajectory:
@@ -978,7 +978,7 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z):
-        self.send_position_estimate(y/1000, x/1000, -z/1000)
+        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
@@ -1038,7 +1038,7 @@ class Controller:
             self.running_position_estimation = False
             localize_thread.join()
 
-        if args.vicon:
+        if args.vicon or args.save_vicon:
             vicon_thread.stop()
 
 
@@ -1052,11 +1052,14 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action="store_true", help="show debug logs")
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
-    arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon")
-    arg_parser.add_argument("--save-camera", action="store_true", help="save camera at 1/10 of original fps")
-    arg_parser.add_argument("--stream-camera", action="store_true", help="stream camera at 1/10 of original fps")
+    arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
+    arg_parser.add_argument("--save-vicon", action="store_true", help="save Vicon tracking data only")
+    arg_parser.add_argument("--save-camera", action="store_true",
+                            help="save camera at 1/10 of original fps, works with --localize")
+    arg_parser.add_argument("--stream-camera", action="store_true",
+                            help="stream camera at 1/10 of original fps, works with --localize")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
-    arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate")
+    arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate, works with --localize")
     arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
     arg_parser.add_argument("--land-altitude", type=float, default=1.0, help="landing altitude in meter")
     arg_parser.add_argument("--voltage", type=float, default=7.4,
@@ -1099,7 +1102,11 @@ if __name__ == "__main__":
         exit()
 
     if args.vicon:
-        vicon_thread = ViconWrapper(c.send_vicon_position, log_level=log_level)
+        vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
+        vicon_thread.start()
+
+    if args.save_vicon:
+        vicon_thread = ViconWrapper(log_level=log_level)
         vicon_thread.start()
 
     if args.localize:
