@@ -11,7 +11,6 @@ import numpy as np
 from pymavlink import mavutil
 
 from log import LoggerFactory
-from vicon import ViconWrapper
 
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
@@ -1102,10 +1101,14 @@ if __name__ == "__main__":
         exit()
 
     if args.vicon:
+        from vicon import ViconWrapper
+
         vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
         vicon_thread.start()
 
     if args.save_vicon:
+        from vicon import ViconWrapper
+
         vicon_thread = ViconWrapper(log_level=log_level)
         vicon_thread.start()
 
