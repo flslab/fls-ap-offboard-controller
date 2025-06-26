@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import struct
 import subprocess
@@ -535,6 +536,47 @@ class Controller:
         self.wait_for_command_ack(ack_type="MISSION_ACK")
 
     def send_trajectory_from_file(self, file_path):
+        with open(file_path, "r") as f:
+            trajectory = json.load(f)
+
+        fps = trajectory["fps"]
+        start_position = trajectory["start_position"]
+        segments = trajectory["segments"]
+
+        #  go to start position
+        for _ in range(10):
+            x, y, z = start_position
+            self.send_position_target(x, y, -self.takeoff_altitude - z)
+            time.sleep(1/10)
+
+        for i in range(3):
+            for segment in segments:
+                positions = segment["position"]
+                velocities = segment["velocity"]
+                state = segment["state"]
+                if state == "LIT":
+                    led.turn_on()
+                else:
+                    led.clear()
+
+                for p, v in zip(positions, velocities):
+                    if self.battery_low:
+                        return
+                    x, y, z = p
+                    vx, vy, vz = v
+                    self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
+                    time.sleep(1/fps)
+
+        led.clear()
+
+        #  go to start position
+        for _ in range(10):
+            x, y, z = start_position
+            self.send_position_target(x, y, -self.takeoff_altitude - z)
+            time.sleep(1 / 10)
+
+
+    def send_trajectory_from_file_(self, file_path):
         """Read and send a trajectory."""
         import pandas as pd
         df = pd.read_csv(file_path)
@@ -745,7 +787,6 @@ class Controller:
         return path
 
     def test_trajectory(self, x=0, y=0, z=0):
-        self.logger.info("Sending")
         points = [(x, y, -self.takeoff_altitude - z)]
 
         for j in range(1):
