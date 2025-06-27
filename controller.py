@@ -544,7 +544,7 @@ class Controller:
         segments = trajectory["segments"]
 
         #  go to start position
-        for _ in range(10):
+        for _ in range(30):
             y, x, z = start_position
             self.send_position_target(x, y, -self.takeoff_altitude - z)
             time.sleep(1/10)
