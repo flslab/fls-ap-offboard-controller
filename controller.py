@@ -564,7 +564,8 @@ class Controller:
                         return
                     y, x, z = p
                     vy, vx, vz = v
-                    self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
+                    self.send_position_target(x, y, -self.takeoff_altitude-z)
+                    # self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
                     time.sleep(1/fps)
 
         led.clear()
