@@ -406,7 +406,7 @@ class Controller:
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_velocity_target(self, vx, vy, vz):
@@ -426,7 +426,7 @@ class Controller:
             0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_position_velocity_target(self, x, y, z, vx, vy, vz):
@@ -446,7 +446,7 @@ class Controller:
             x, y, z,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_acceleration_target(self, ax, ay, az):
