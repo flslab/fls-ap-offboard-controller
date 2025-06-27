@@ -545,7 +545,7 @@ class Controller:
 
         #  go to start position
         for _ in range(10):
-            x, y, z = start_position
+            y, x, z = start_position
             self.send_position_target(x, y, -self.takeoff_altitude - z)
             time.sleep(1/10)
 
@@ -562,8 +562,8 @@ class Controller:
                 for p, v in zip(positions, velocities):
                     if self.battery_low:
                         return
-                    x, y, z = p
-                    vx, vy, vz = v
+                    y, x, z = p
+                    vy, vx, vz = v
                     self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
                     time.sleep(1/fps)
 
@@ -571,7 +571,7 @@ class Controller:
 
         #  go to start position
         for _ in range(10):
-            x, y, z = start_position
+            y, x, z = start_position
             self.send_position_target(x, y, -self.takeoff_altitude - z)
             time.sleep(1 / 10)
 
