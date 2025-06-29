@@ -554,6 +554,8 @@ class Controller:
                 positions = segment["position"]
                 velocities = segment["velocity"]
                 state = segment["state"]
+                if state == "RETURN" and i == 2:
+                    break
                 if state == "LIT":
                     led.turn_on()
                 else:
