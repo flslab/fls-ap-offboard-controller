@@ -549,8 +549,8 @@ class Controller:
         z = -self.takeoff_altitude - z
         dx, dy, dz = x - x0, y - y0, z -z0
 
-        # move to start point in 2 seconds
-        for i in range(1, 21):
+        # move to start point in 3 seconds
+        for i in range(1, 31):
             self.send_position_target(x0 + i * dx/20, y0 + i * dy/20, z0 + i * dz/20)
             time.sleep(1/10)
 
