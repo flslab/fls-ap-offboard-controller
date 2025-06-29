@@ -551,7 +551,7 @@ class Controller:
 
         # move to start point in 3 seconds
         for i in range(1, 31):
-            self.send_position_target(x0 + i * dx/20, y0 + i * dy/20, z0 + i * dz/20)
+            self.send_position_target(x0 + i * dx/30, y0 + i * dy/30, z0 + i * dz/30)
             time.sleep(1/10)
 
         # stay at start point for 1 second
