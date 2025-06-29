@@ -564,18 +564,16 @@ class Controller:
                         return
                     y, x, z = p
                     vy, vx, vz = v
-                    self.send_position_target(x, y, -self.takeoff_altitude-z)
-                    # self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
+                    # self.send_position_target(x, y, -self.takeoff_altitude-z)
+                    self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
                     time.sleep(1/fps)
 
         led.clear()
 
         #  go to start position
         for _ in range(10):
-            y, x, z = start_position
-            self.send_position_target(x, y, -self.takeoff_altitude - z)
+            self.send_position_target(0, 0, -self.takeoff_altitude)
             time.sleep(1 / 10)
-
 
     def send_trajectory_from_file_(self, file_path):
         """Read and send a trajectory."""
