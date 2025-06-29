@@ -5,7 +5,7 @@ import neopixel_spi as neopixel
 
 
 class MovingDotLED(threading.Thread):
-    def __init__(self, num_pixels=46, color=(227, 253, 255), tail_decay=0.75, delay=0.02):
+    def __init__(self, num_pixels=46, color=(227, 253, 255), tail_decay=0.75, delay=0.02, brightness=1.0):
         super().__init__()
         self.num_pixels = num_pixels
         self.color = color
@@ -20,7 +20,7 @@ class MovingDotLED(threading.Thread):
             self.num_pixels,
             pixel_order=neopixel.GRB,
             auto_write=False,
-            brightness=1.0
+            brightness=brightness
         )
 
     def fade_tail(self):
