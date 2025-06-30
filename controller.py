@@ -1153,21 +1153,6 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
-    if args.vicon:
-        print("vicon")
-        from vicon import ViconWrapper
-
-        vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
-        vicon_thread.start()
-
-    if args.save_vicon:
-        print("save vicon")
-
-        from vicon import ViconWrapper
-
-        vicon_thread = ViconWrapper(log_level=log_level)
-        vicon_thread.start()
-
     if args.localize:
         localize_thread = Thread(target=c.run_camera_localization)
         lat = 12345
@@ -1195,6 +1180,15 @@ if __name__ == "__main__":
 
         time.sleep(2)
         localize_thread.start()
+
+    if args.vicon:
+        from vicon import ViconWrapper
+        vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
+        vicon_thread.start()
+    elif args.save_vicon:
+        from vicon import ViconWrapper
+        vicon_thread = ViconWrapper(log_level=log_level)
+        vicon_thread.start()
 
     if not c.set_mode('GUIDED'):
         pass
