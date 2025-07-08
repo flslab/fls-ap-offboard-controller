@@ -342,11 +342,14 @@ class Controller:
             self.send_motor_test(i + 1, throttle_type=0, throttle_value=10, duration=1)
             time.sleep(0.25)
 
-    def watch_battery(self):
+    def watch_battery(self, independent=False):
         start = time.perf_counter()
 
         while self.running_battery_watcher:
             elapsed = time.perf_counter() - start
+
+            if independent and elapsed > self.flight_duration:
+                break
 
             msg = self.master.recv_match(type=['BATTERY_STATUS'], blocking=True, timeout=1)
             voltage = current = 'N/A'
@@ -1146,6 +1149,7 @@ if __name__ == "__main__":
     c.request_data()
 
     if args.status:
+        args.debug = True
         c.watch_battery()
         exit()
 
