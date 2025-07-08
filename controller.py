@@ -1125,7 +1125,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
     args = arg_parser.parse_args()
 
-    log_level = logging.DEBUG if args.debug else logging.INFO
+    log_level = logging.DEBUG if args.debug or args.status else logging.INFO
     c = Controller(
         takeoff_altitude=args.takeoff_altitude,
         land_altitude=args.land_altitude,
@@ -1149,7 +1149,6 @@ if __name__ == "__main__":
     c.request_data()
 
     if args.status:
-        args.debug = True
         c.watch_battery(independent=True)
         exit()
 
