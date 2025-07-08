@@ -345,7 +345,7 @@ class Controller:
     def watch_battery(self, independent=False):
         start = time.perf_counter()
 
-        while self.running_battery_watcher:
+        while self.running_battery_watcher or independent:
             elapsed = time.perf_counter() - start
 
             if independent and elapsed > self.flight_duration:
@@ -1150,7 +1150,7 @@ if __name__ == "__main__":
 
     if args.status:
         args.debug = True
-        c.watch_battery()
+        c.watch_battery(independent=True)
         exit()
 
     if args.test_motors:
