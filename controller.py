@@ -1168,8 +1168,8 @@ if __name__ == "__main__":
             "/home/fls/fls-marker-localization/build/eye",
             "-t", str(30 + args.duration),
             "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
-            "--brightness", "0.5",  # 0.01
-            "--contrast", "2.5",  # 0.75
+            "--brightness", "0.01",  # 0.5
+            "--contrast", "0.75",  # 0.75
             "--exposure", "500",
             "--fps", str(args.fps),
         ]
