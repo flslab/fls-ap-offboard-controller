@@ -74,7 +74,7 @@ class Controller:
         self.takeoff_altitude = takeoff_altitude
         self.land_altitude = land_altitude
         self.start_time = time.time()
-        self.battery_low = False
+        self.failsafe = False
         self.running_position_estimation = False
         self.running_battery_watcher = False
         self.sim = sim
@@ -361,7 +361,7 @@ class Controller:
                     current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
 
                     if isinstance(voltage, float) and voltage < self.voltage_threshold:
-                        self.battery_low = True
+                        self.failsafe = True
                         self.logger.warning(f"Failsafe triggered due to low battery ({voltage} V)")
                         break
 
@@ -575,7 +575,7 @@ class Controller:
                     led.clear()
 
                 for p, v in zip(positions, velocities):
-                    if self.battery_low:
+                    if self.failsafe:
                         return
                     y, x, z = p
                     vy, vx, vz = v
@@ -627,7 +627,7 @@ class Controller:
         # Send each point in the trajectory
         for j in range(3):
             for i in range(point_count):
-                if self.battery_low:
+                if self.failsafe:
                     return
 
                 _x = 0
@@ -806,7 +806,7 @@ class Controller:
         for j in range(1):
             for point in points:
                 for i in range(int(self.flight_duration * 10)):
-                    if self.battery_low:
+                    if self.failsafe:
                         return
                     self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 10)
@@ -913,7 +913,7 @@ class Controller:
         for j in range(1):
             for point in points:
                 for i in range(10):
-                    if self.battery_low:
+                    if self.failsafe:
                         return
                     self.send_position_target(point[2], point[0] - 0.3, -1 - (point[1] - 1.7) / 3)
                     time.sleep(1 / 10)
@@ -929,7 +929,7 @@ class Controller:
 
         start_time = time.time()
 
-        while not self.battery_low:
+        while not self.failsafe:
             t = time.time() - start_time
             if 0 < self.flight_duration <= t:
                 break
@@ -967,11 +967,16 @@ class Controller:
         shm_fd = open(f"/dev/shm{shm_name}", "r+b")  # Open shared memory
         shm_map = mmap.mmap(shm_fd.fileno(), position_size, access=mmap.ACCESS_READ)
 
+        last_valid = time.time()
         while self.running_position_estimation:
             data = shm_map[:position_size]  # Read 28 bytes
             valid = struct.unpack("<4?", data[:4])[0]  # Extract the validity flag (1 byte)
 
+            if time.time() - last_valid > 3:
+                self.failsafe = True
+                self.logger.warning(f"Failsafe triggered due to lack of position estimation.")
             if valid:
+                last_valid = time.time()
                 x, y, z, roll, pitch, yaw = struct.unpack("<6f", data[4:28])
                 # x, y, z = struct.unpack("<3f", data[4:16])
                 x = truncate(x, 3)
