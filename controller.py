@@ -972,7 +972,7 @@ class Controller:
             data = shm_map[:position_size]  # Read 28 bytes
             valid = struct.unpack("<4?", data[:4])[0]  # Extract the validity flag (1 byte)
 
-            if time.time() - last_valid > 3:
+            if time.time() - last_valid > 2 and self.failsafe is False:
                 self.failsafe = True
                 self.logger.warning(f"Failsafe triggered due to lack of position estimation.")
             if valid:
