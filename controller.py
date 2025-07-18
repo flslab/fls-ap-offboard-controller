@@ -550,19 +550,19 @@ class Controller:
         x0, y0, z0 = 0, 0, -self.takeoff_altitude
         y, x, z = start_position
         z = -self.takeoff_altitude - z
-        dx, dy, dz = x - x0, y - y0, z -z0
+        dx, dy, dz = x - x0, y - y0, z - z0
 
         # move to start point in 3 seconds
         for i in range(1, 31):
-            self.send_position_target(x0 + i * dx/30, y0 + i * dy/30, z0 + i * dz/30)
-            time.sleep(1/10)
+            self.send_position_target(x0 + i * dx / 30, y0 + i * dy / 30, z0 + i * dz / 30)
+            time.sleep(1 / 10)
 
         # stay at start point for 1 second
         for i in range(10):
             self.send_position_target(x, y, z)
-            time.sleep(1/10)
+            time.sleep(1 / 10)
 
-        for i in range(3):
+        for i in range(args.repeat_trajectory):
             for segment in segments:
                 positions = segment["position"]
                 velocities = segment["velocity"]
@@ -580,8 +580,8 @@ class Controller:
                     y, x, z = p
                     vy, vx, vz = v
                     # self.send_position_target(x, y, -self.takeoff_altitude-z)
-                    self.send_position_velocity_target(x, y, -self.takeoff_altitude-z, vx, vy, -vz)
-                    time.sleep(1/fps)
+                    self.send_position_velocity_target(x, y, -self.takeoff_altitude - z, vx, vy, -vz)
+                    time.sleep(1 / fps)
 
         led.clear()
 
@@ -827,13 +827,30 @@ class Controller:
 
     def test_trajectory_3(self):
         waypoints = [
-            [0, 0, -self.takeoff_altitude],
-            [0, .2, -self.takeoff_altitude],
-            [0, 0, -self.takeoff_altitude]
-        ]
+                        [0, 0, -self.takeoff_altitude],
+                        [0, 0.2, -self.takeoff_altitude],
+                    ] * 5
+
+        waypoints_2 = [
+                          [0, 0, -self.takeoff_altitude],
+                          [0.2, 0, -self.takeoff_altitude],
+                      ] * 5
+
+        for i in range(20):
+            self.send_position_target(*waypoints[0])
+            time.sleep(1 / 10)
 
         for pos in waypoints:
-            for i in range(50):
+            for i in range(10):
+                self.send_position_target(*pos)
+                time.sleep(1 / 10)
+
+        for i in range(20):
+            self.send_position_target(*waypoints_2[0])
+            time.sleep(1 / 10)
+
+        for pos in waypoints_2:
+            for i in range(10):
                 self.send_position_target(*pos)
                 time.sleep(1 / 10)
 
@@ -1073,8 +1090,7 @@ class Controller:
             time.sleep(2)
             flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
         else:
-            time.sleep(5)
-            flight_thread = Thread(target=self.test_trajectory_4())
+            flight_thread = Thread(target=self.test_trajectory_3())
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
@@ -1126,6 +1142,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--voltage", type=float, default=7.4,
                             help="critical battery voltage threshold to land when reached")
     arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
+    arg_parser.add_argument("--repeat-trajectory", type=int, default=3, help="number of trajectory repetitions")
     arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
@@ -1192,10 +1209,12 @@ if __name__ == "__main__":
 
     if args.vicon:
         from vicon import ViconWrapper
+
         vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
         vicon_thread.start()
     elif args.save_vicon:
         from vicon import ViconWrapper
+
         vicon_thread = ViconWrapper(log_level=log_level)
         vicon_thread.start()
 
