@@ -14,12 +14,13 @@ VICON_ADDRESS = f"{VICON_PC_IP}:801"
 
 
 class ViconWrapper(threading.Thread):
-    def __init__(self, callback=None, log_level=logging.INFO):
+    def __init__(self, callback=None, log_level=logging.INFO, labeled_object=False):
         super().__init__()
         self.running = False
         self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
         self.callback = callback
         self.position_log = []
+        self.labeled_object = labeled_object
 
     def stop(self):
         self.running = False
@@ -36,9 +37,13 @@ class ViconWrapper(threading.Thread):
             client.connect(VICON_ADDRESS)
             self.logger.info("Connection successful!")
 
-            client.enable_marker_data()
-            client.enable_segment_data()
-            self.logger.info("Marker and Segment data enabled.")
+            if self.labeled_object:
+                client.enable_marker_data()
+                client.enable_segment_data()
+                self.logger.info("Marker and Segment data enabled.")
+            else:
+                client.enable_unlabeled_marker_data()
+                self.logger.info("Unlabeled marker data enabled.")
 
             client.set_stream_mode(StreamMode.ClientPull)
             self.logger.info("Stream mode set to ClientPull.")
@@ -51,38 +56,38 @@ class ViconWrapper(threading.Thread):
                     frame_num = client.get_frame_number()
                     self.logger.debug(f"--- Frame {frame_num} ---")
 
-                    subject_count = client.get_subject_count()
-                    if subject_count > 0:
-                        # Loop through subjects by index
-                        for subject_index in range(subject_count):
-                            subject_name = client.get_subject_name(subject_index)
+                    if self.labeled_object:
+                        object_count = client.get_subject_count()
+                        self.logger.debug(f"\tSubject count: {object_count}")
+                    else:
+                        object_count = client.get_unlabeled_marker_count()
+                        self.logger.debug(f"\tUnlabeled marker count: {object_count}")
+
+                    if object_count is not None and object_count == 1:
+                        translation = None
+
+                        if self.labeled_object:
+                            subject_name = client.get_subject_name(0)
                             if subject_name:
-                                self.logger.debug(f"  Subject: {subject_name}")
-
-                                # Get the root segment
+                                self.logger.debug(f"\tSubject: {subject_name}")
                                 root_segment = client.get_subject_root_segment_name(subject_name)
+                                translation = client.get_segment_global_translation(subject_name, root_segment)
+                        else:
+                            translation = client.get_unlabeled_marker_global_translation(0)
 
-                                # Get the global translation (position)
-                                try:
-                                    translation = client.get_segment_global_translation(subject_name, root_segment)
-
-                                    if translation is not None:  # This means data exists and is not occluded
-                                        pos_x, pos_y, pos_z = translation
-                                        self.position_log.append({
-                                            "frame_id": frame_num,
-                                            "tvec": [pos_x, pos_y, pos_z],
-                                            "time": time.time() * 1000
-                                        })
-                                        if callable(self.callback):
-                                            self.callback(pos_x, pos_y, pos_z)
-                                        self.logger.debug(
-                                            f"    Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
-                                    else:
-                                        self.logger.warning(f"    Position (mm): Occluded or no data")
-
-                                except Exception as e:
-                                    self.logger.error(f"    Could not get segment data: {e}")
-                                    break
+                        if translation is not None:
+                            pos_x, pos_y, pos_z = translation
+                            self.position_log.append({
+                                "frame_id": frame_num,
+                                "tvec": [pos_x, pos_y, pos_z],
+                                "time": time.time() * 1000
+                            })
+                            if callable(self.callback):
+                                self.callback(pos_x, pos_y, pos_z)
+                            self.logger.debug(
+                                f"\tPosition (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
+                        else:
+                            self.logger.warning(f"\tPosition (mm): Occluded or no data")
 
                 else:
                     time.sleep(0.01)
@@ -103,3 +108,58 @@ class ViconWrapper(threading.Thread):
             if client.is_connected():
                 client.disconnect()
                 self.logger.info("Disconnected from Vicon server.")
+
+
+if __name__ == "__main__":
+    vw = ViconWrapper(labeled_object=False, log_level=logging.DEBUG)
+    vw.start()
+    time.sleep(30)
+    vw.stop()
+
+    # July 15
+    # E
+    # vicon_16_57_16_07_15_2025.json
+    # O
+    # vicon_17_01_00_07_15_2025.json
+    # S
+    # vicon_17_51_44_07_15_2025.json
+    # N
+    # vicon_17_55_20_07_15_2025.json
+
+    # E:
+    # logs/16_02_08_06_30_2025/log.json
+    # vicon_16_03_42_06_30_2025.json * (4224, 6843)
+
+    # N:
+    # logs/16_07_54_06_30_2025/log.json
+    # vicon_16_09_30_06_30_2025.json * (3590, 5801)
+
+    # S:
+    # logs/16_11_28_06_30_2025/log.json
+    # vicon_16_12_16_06_30_2025.json
+
+    # S linear speed=0.25
+    # logs/16_16_10_06_30_2025/log.json
+    # vicon_16_17_18_06_30_2025.json
+    # logs/16_18_04_06_30_2025/log.json
+    # vicon_16_36_10_06_30_2025.json * (2862, 3764)
+
+    # S linear speed=0.15
+    # logs/16_38_10_06_30_2025/log.json
+    # vicon_16_39_22_06_30_2025.json
+    # logs/16_42_44_06_30_2025/log.json
+    # vicon_16_43_51_06_30_2025.json
+    # logs/16_49_57_06_30_2025/log.json
+    # vicon_16_51_32_06_30_2025.json
+
+    # O linear speed=0.25:
+    # logs/16_13_46_06_30_2025/log.json
+    # vicon_16_14_37_06_30_2025.json * (1743, 2483)
+
+    # O linear speed=0.2:
+    # 16_53_10_06_30_2025/log.json
+    # vicon_16_54_39_06_30_2025.json
+
+    # O linear speed=0.15:
+    # 16_56_16_06_30_2025/log.json
+    # vicon_16_57_15_06_30_2025.json
