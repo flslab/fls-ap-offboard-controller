@@ -1077,7 +1077,7 @@ class Controller:
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
         self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
-        self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
+        # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
@@ -1099,7 +1099,6 @@ class Controller:
 
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
-        self.send_dummy_position_setpoint()
         time.sleep(3)
         c.takeoff()
         time.sleep(2)
