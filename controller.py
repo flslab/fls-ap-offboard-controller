@@ -738,32 +738,6 @@ class Controller:
         self.mission_items.append(MissionItem(1, 0, -35.363026, 149.165152, 1))
         self.mission_items.append(MissionItem(2, 0, 0, 0, 1))
 
-        # for i in range(point_count):
-        #     if args.sim:
-        #         _x = (z[i] - z[0]) * 2.5
-        #         _y = (x[i] - x[0]) * 2.5
-        #         _z = -self.takeoff_altitude
-        #     else:
-        #         _x = 0
-        #         _y = (x[i]) * 2.5 - x[0]
-        #         _z = - self.takeoff_altitude - (z[i] - z[0]) * 2.5
-        #
-        #     # _vx = 0
-        #     # _vy = vx[i] * 10
-        #     # _vz = vz[i] * 10
-        #     # _vx = (_x - __x) / dt
-        #     # _vy = (_y - __y) / dt
-        #     # _vz = (_z - __z) / dt
-        #
-        #     # __x = _x
-        #     # __y = _y
-        #     # __z = _z
-        #     # print(_x, _y, _z)
-        #     self.mission_items.append(MissionItem(i, 0, _x, _y, _z))
-        #     # self.send_position_velocity_target(_z, _y, -1, _vz, _vy, _vx)
-        #     # self.send_velocity_target(_vx, _vy, _vz)
-        #     time.sleep(dt)
-
         self.upload_mission(self.mission_items)
 
     def start_mission(self):
@@ -884,44 +858,6 @@ class Controller:
             for i in range(5):
                 self.send_attitude_target_deg(*ori)
                 time.sleep(1 / 20)
-        # angle = 10
-        # for j in range(5):
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(i, 0, 0)
-        #         time.sleep(1 / 20)
-        #
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(angle - i, 0, 0)
-        #         time.sleep(1 / 20)
-        #
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(-i, 0, 0)
-        #         time.sleep(1 / 20)
-        #
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(-angle + i, 0, 0)
-        #         time.sleep(1 / 20)
-        #
-        # for i in range(20):
-        #     self.send_attitude_target_deg(0, 0, 0)
-        #     time.sleep(1 / 20)
-        #
-        # for j in range(5):
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(0, i, 0)
-        #         time.sleep(1 / 20)
-        #
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(0, angle - i, 0)
-        #         time.sleep(1 / 20)
-        #
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(0, -i, 0)
-        #         time.sleep(1 / 20)
-        #
-        #     for i in range(angle + 1):
-        #         self.send_attitude_target_deg(0, -angle + i, 0)
-        #         time.sleep(1 / 20)
 
     def test_s_trajectory(self):
         self.logger.info("Sending")
@@ -981,14 +917,6 @@ class Controller:
         )
 
     def send_velocity_estimate(self, vx, vy, vz, covariance=None):
-        # covariance = np.array([0, 0, 0, 0, 0, 0,
-        #                        0, 0, 0, 0, 0,
-        #                        0, 0, 0, 0,
-        #                        0, 0, 0,
-        #                        0, 0,
-        #                        0])
-        # reset_counter = 1
-
         if covariance is None:
             covariance = [0.1, 0.0, 0.0,  # vx variance and covariances
                           0.0, 0.1, 0.0,  # vy variance and covariances
@@ -999,6 +927,51 @@ class Controller:
             vx, vy, vz,  # velocities in m/s
             covariance,  # covariance matrix
             0  # reset counter
+        )
+
+    def send_vision_odometry(self, x, y, z, vx, vy, vz, timestamp=None):
+        """
+        Send complete odometry data (position + velocity + orientation)
+        All velocities in m/s and rad/s
+        """
+        if timestamp is None:
+            timestamp = time.time()
+
+        # Default quaternion (no rotation) - w=1, x=y=z=0
+        qw, qx, qy, qz = 1.0, 0.0, 0.0, 0.0
+
+        # No angular velocities
+        vroll, vpitch, vyaw = 0.0, 0.0, 0.0
+
+        # Position covariance (6x6 matrix, but we send diagonal elements)
+        pose_covariance = [
+            0.1, 0, 0, 0, 0, 0,  # x - good estimate
+            0, 0.1, 0, 0, 0, 0,  # y - good estimate
+            0, 0, 0.1, 0, 0, 0,  # z - good estimate
+            0, 0, 0, 100.0, 0, 0,  # roll - high uncertainty (no data)
+            0, 0, 0, 0, 100.0, 0,  # pitch - high uncertainty (no data)
+            0, 0, 0, 0, 0, 100.0  # yaw - high uncertainty (no data)
+        ]
+
+        velocity_covariance = [
+            1.0, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
+            0, 1.0, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
+            0, 0, 1.0, 0, 0, 0,  # vz - calculated, moderate uncertainty
+            0, 0, 0, 100.0, 0, 0,  # vroll - high uncertainty (no data)
+            0, 0, 0, 0, 100.0, 0,  # vpitch - high uncertainty (no data)
+            0, 0, 0, 0, 0, 100.0  # vyaw - high uncertainty (no data)
+        ]
+
+        self.master.mav.odometry_send(
+            int(timestamp * 1e6),  # timestamp
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame_id
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # child_frame_id
+            x, y, z,  # position
+            [qw, qx, qy, qz],  # orientation quaternion
+            vx, vy, vz,  # linear velocity
+            vroll, vpitch, vyaw,  # angular velocity
+            pose_covariance,  # pose covariance
+            velocity_covariance  # velocity covariance
         )
 
     def run_camera_localization(self):
@@ -1077,8 +1050,9 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
-        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
+        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
