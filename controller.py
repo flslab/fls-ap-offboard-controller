@@ -1304,7 +1304,7 @@ if __name__ == "__main__":
 
     c.request_data()
 
-    c.check_ekf()
+    c.check_preflight()
 
     if not c.set_mode('GUIDED'):
         pass
