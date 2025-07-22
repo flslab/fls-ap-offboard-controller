@@ -143,6 +143,7 @@ class Controller:
                     return True
                 else:
                     self.logger.error(f"Command {command} failed with result: {msg.result}")
+                    self.get_statustext()
                     return False
 
         self.logger.error(f"No ACK received for command {command}")
@@ -1135,10 +1136,6 @@ class Controller:
                 return msg.param_value
         return None
 
-    def send_dummy_position_setpoint(self):
-        """Send a dummy position setpoint to initialize local position control."""
-        self.send_position_target(0, 0, -1)
-
     def check_ekf_status(self):
         """Check if EKF is healthy and has a valid position estimate."""
         timeout = time.time() + 10
@@ -1169,19 +1166,19 @@ class Controller:
                 self.logger.info("EKF is healthy and position estimate is OK.")
                 return True
             else:
-                self.logger.error("EKF is not ready for GUIDED takeoff.")
+                self.logger.warning("EKF is not ready for GUIDED takeoff.")
                 return False
 
         self.logger.error("Timed out waiting for EKF status.")
         return False
 
     def get_statustext(self, timeout=5):
-        print("Listening for STATUSTEXT messages...")
+        self.logger.info("Listening for STATUSTEXT messages...")
         end = time.time() + timeout
         while time.time() < end:
             msg = self.master.recv_match(type='STATUSTEXT', blocking=True, timeout=1)
             if msg:
-                print(f"STATUSTEXT [{msg.severity}]: {msg.text}")
+                self.logger.info(f"STATUSTEXT [{msg.severity}]: {msg.text}")
 
     def check_preflight(self):
         self.logger.info("Fetching current EKF sources...")
@@ -1191,7 +1188,7 @@ class Controller:
 
         while not self.check_ekf_status():
             self.logger.info("waiting for EK3 to converge...")
-            time.sleep(0.5)
+            time.sleep(1)
 
     def stop(self):
         self.land()
