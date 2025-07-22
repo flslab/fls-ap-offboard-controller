@@ -1077,7 +1077,7 @@ class Controller:
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
         self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
-        self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
+        # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
@@ -1125,6 +1125,70 @@ class Controller:
         flight_thread.join()
         self.running_battery_watcher = False
         battery_thread.join()
+
+    def wait_param(self, name, timeout=5):
+        """Fetch a parameter and return its value."""
+        self.master.mav.param_request_read_send(self.master.target_system, self.master.target_component, name.encode(), -1)
+        start = time.time()
+        while time.time() - start < timeout:
+            msg = self.master.recv_match(type='PARAM_VALUE', blocking=True, timeout=1)
+            if msg and msg.param_id.decode().strip('\x00') == name:
+                return msg.param_value
+        return None
+
+    def check_ekf_status(self):
+        """Check if EKF is healthy and has a valid position estimate."""
+        print("Waiting for EKF status...")
+        timeout = time.time() + 10
+        while time.time() < timeout:
+            msg = self.master.recv_match(type='EKF_STATUS_REPORT', blocking=True, timeout=1)
+            if not msg:
+                continue
+
+            flags = msg.flags
+            status = {
+                'attitude': bool(flags & (1 << 0)),
+                'velocity_horiz': bool(flags & (1 << 1)),
+                'velocity_vert': bool(flags & (1 << 2)),
+                'pos_horiz_abs': bool(flags & (1 << 3)),
+                'pos_horiz_rel': bool(flags & (1 << 4)),
+                'pos_vert_abs': bool(flags & (1 << 5)),
+                'pos_vert_rel': bool(flags & (1 << 6)),
+                'compass': bool(flags & (1 << 7)),
+                'terrain_alt': bool(flags & (1 << 8)),
+                'const_pos_mode': bool(flags & (1 << 9)),
+            }
+
+            print("EKF status report:")
+            for k, v in status.items():
+                print(f" - {k}: {'OK' if v else 'NOT OK'}")
+
+            if status['attitude'] and status['velocity_horiz'] and (status['pos_horiz_abs'] or status['pos_horiz_rel']):
+                print("✅ EKF is healthy and position estimate is OK.")
+                return True
+            else:
+                print("❌ EKF is not ready for GUIDED takeoff.")
+                return False
+
+        print("❌ Timed out waiting for EKF status.")
+        return False
+
+    def get_statustext(timeout=5):
+        print("Listening for STATUSTEXT messages...")
+        end = time.time() + timeout
+        while time.time() < end:
+            msg = self.master.recv_match(type='STATUSTEXT', blocking=True, timeout=1)
+            if msg:
+                print(f"STATUSTEXT [{msg.severity}]: {msg.text}")
+
+    def check_preflight(self):
+        print("Fetching current EKF sources...")
+        posxy_src = self.wait_param("EK3_SRC1_POSXY")
+        velxy_src = self.wait_param("EK3_SRC1_VELXY")
+        print(f"EK3_SRC1_POSXY = {posxy_src}, EK3_SRC1_VELXY = {velxy_src}")
+
+        if self.check_ekf_status():
+            print("hi")
 
     def stop(self):
         self.land()
@@ -1239,6 +1303,8 @@ if __name__ == "__main__":
         vicon_thread.start()
 
     c.request_data()
+
+    c.check_ekf()
 
     if not c.set_mode('GUIDED'):
         pass
