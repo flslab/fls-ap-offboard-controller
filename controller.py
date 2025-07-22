@@ -1141,7 +1141,6 @@ class Controller:
 
     def check_ekf_status(self):
         """Check if EKF is healthy and has a valid position estimate."""
-        print("Waiting for EKF status...")
         timeout = time.time() + 10
         while time.time() < timeout:
             msg = self.master.recv_match(type='EKF_STATUS_REPORT', blocking=True, timeout=1)
@@ -1162,21 +1161,21 @@ class Controller:
                 'const_pos_mode': bool(flags & (1 << 9)),
             }
 
-            print("EKF status report:")
+            self.logger.debug("EKF status report:")
             for k, v in status.items():
-                print(f" - {k}: {'OK' if v else 'NOT OK'}")
+                self.logger.debug(f" - {k}: {'OK' if v else 'NOT OK'}")
 
             if status['attitude'] and status['velocity_horiz'] and (status['pos_horiz_abs'] or status['pos_horiz_rel']):
-                print("✅ EKF is healthy and position estimate is OK.")
+                self.logger.info("EKF is healthy and position estimate is OK.")
                 return True
             else:
-                print("❌ EKF is not ready for GUIDED takeoff.")
+                self.logger.error("EKF is not ready for GUIDED takeoff.")
                 return False
 
-        print("❌ Timed out waiting for EKF status.")
+        self.logger.error("Timed out waiting for EKF status.")
         return False
 
-    def get_statustext(timeout=5):
+    def get_statustext(self, timeout=5):
         print("Listening for STATUSTEXT messages...")
         end = time.time() + timeout
         while time.time() < end:
@@ -1185,13 +1184,14 @@ class Controller:
                 print(f"STATUSTEXT [{msg.severity}]: {msg.text}")
 
     def check_preflight(self):
-        print("Fetching current EKF sources...")
+        self.logger.info("Fetching current EKF sources...")
         posxy_src = self.wait_param("EK3_SRC1_POSXY")
         velxy_src = self.wait_param("EK3_SRC1_VELXY")
-        print(f"EK3_SRC1_POSXY = {posxy_src}, EK3_SRC1_VELXY = {velxy_src}")
+        self.logger.info(f"EK3_SRC1_POSXY = {posxy_src}, EK3_SRC1_VELXY = {velxy_src}")
 
-        if self.check_ekf_status():
-            print("hi")
+        while not self.check_ekf_status():
+            self.logger.info("waiting for EK3 to converge...")
+            time.sleep(0.5)
 
     def stop(self):
         self.land()
