@@ -979,6 +979,27 @@ class Controller:
             reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
         )
 
+    def send_velocity_estimate(self, vx, vy, vz, covariance=None):
+        # covariance = np.array([0, 0, 0, 0, 0, 0,
+        #                        0, 0, 0, 0, 0,
+        #                        0, 0, 0, 0,
+        #                        0, 0, 0,
+        #                        0, 0,
+        #                        0])
+        # reset_counter = 1
+
+        if covariance is None:
+            covariance = [0.1, 0.0, 0.0,  # vx variance and covariances
+                          0.0, 0.1, 0.0,  # vy variance and covariances
+                          0.0, 0.0, 0.1]  # vz variance and covariances
+
+        self.master.mav.vision_speed_estimate_send(
+            int(time.time() * 1e6),  # timestamp in microseconds
+            vx, vy, vz,  # velocities in m/s
+            covariance,  # covariance matrix
+            0  # reset counter
+        )
+
     def run_camera_localization(self):
         position_size = 1 + 3 + 6 * 4  # 1 byte + 3 byte padding + 6 floats (4 bytes each)
         shm_name = "/pos_shared_mem"
@@ -1054,8 +1075,9 @@ class Controller:
 
             time.sleep(1 / args.fps)
 
-    def send_vicon_position(self, x, y, z):
+    def send_vicon_position(self, x, y, z, vx, vy, vz):
         self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """

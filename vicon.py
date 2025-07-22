@@ -51,6 +51,8 @@ class ViconWrapper(threading.Thread):
             # Set axis mapping for standard coordinate systems
             client.set_axis_mapping(Direction.Forward, Direction.Left, Direction.Up)
 
+            last_time = time.time()
+            last_pos_x, last_pos_y, last_pos_z = 0, 0, 0
             while self.running:
                 if client.get_frame():
                     frame_num = client.get_frame_number()
@@ -76,14 +78,20 @@ class ViconWrapper(threading.Thread):
                             translation = client.get_unlabeled_marker_global_translation(0)
 
                         if translation is not None:
+                            now = time.time()
+                            dt = now - last_time
                             pos_x, pos_y, pos_z = translation
+                            vel_x, vel_y, vel_z = (pos_x - last_pos_x) / dt, (pos_y - last_pos_y) / dt, (pos_z - last_pos_z) / dt
                             self.position_log.append({
                                 "frame_id": frame_num,
                                 "tvec": [pos_x, pos_y, pos_z],
-                                "time": time.time() * 1000
+                                "vel": [vel_x, vel_y, vel_z],
+                                "time": now * 1000
                             })
                             if callable(self.callback):
-                                self.callback(pos_x, pos_y, pos_z)
+                                self.callback(pos_x, pos_y, pos_z, vel_x, vel_y, vel_z)
+                            last_time = now
+                            last_pos_x, last_pos_y, last_pos_z = pos_x, pos_y, pos_z
                             self.logger.debug(
                                 f"\tPosition (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
                         else:
