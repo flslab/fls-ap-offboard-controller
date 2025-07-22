@@ -1077,7 +1077,7 @@ class Controller:
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
         self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
-        # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
+        self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
@@ -1132,7 +1132,7 @@ class Controller:
         start = time.time()
         while time.time() - start < timeout:
             msg = self.master.recv_match(type='PARAM_VALUE', blocking=True, timeout=1)
-            if msg and msg.param_id.decode().strip('\x00') == name:
+            if msg and msg.param_id.strip('\x00') == name:
                 return msg.param_value
         return None
 
