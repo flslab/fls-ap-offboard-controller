@@ -1296,6 +1296,11 @@ if __name__ == "__main__":
         localize_thread.start()
 
     if args.vicon:
+        lat = 12345
+        lon = 12345
+        alt = 0
+        c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
+        c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
         from vicon import ViconWrapper
 
         vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
