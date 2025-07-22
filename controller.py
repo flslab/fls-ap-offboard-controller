@@ -1138,18 +1138,7 @@ class Controller:
 
     def send_dummy_position_setpoint(self):
         """Send a dummy position setpoint to initialize local position control."""
-        self.master.mav.set_position_target_local_ned_send(
-            int(time.time() * 1e6),  # Timestamp in microseconds
-            self.master.target_system,
-            self.master.target_component,
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b0000111111000111,  # Bitmask: ignore everything except x/y/z position
-            0, 0, -1,  # NED position (x, y, z), -1m altitude (upward)
-            0, 0, 0,  # Velocity
-            0, 0, 0,  # Acceleration
-            0, 0  # Yaw, Yaw rate
-        )
-        print("✅ Sent dummy position setpoint")
+        self.send_position_target(0, 0, -1)
 
     def check_ekf_status(self):
         """Check if EKF is healthy and has a valid position estimate."""
