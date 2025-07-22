@@ -1169,8 +1169,6 @@ if __name__ == "__main__":
         c.disarm()
         exit()
 
-    c.request_data()
-
     if args.status:
         c.watch_battery(independent=True)
         exit()
@@ -1217,6 +1215,8 @@ if __name__ == "__main__":
 
         vicon_thread = ViconWrapper(log_level=log_level)
         vicon_thread.start()
+
+    c.request_data()
 
     if not c.set_mode('GUIDED'):
         pass
