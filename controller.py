@@ -945,27 +945,27 @@ class Controller:
 
         # Position covariance (6x6 matrix, but we send diagonal elements)
         pose_covariance = [
-            0.1, 0, 0, 0, 0, 0,  # x - good estimate
-            0, 0.1, 0, 0, 0, 0,  # y - good estimate
-            0, 0, 0.1, 0, 0, 0,  # z - good estimate
-            0, 0, 0, 100.0, 0, 0,  # roll - high uncertainty (no data)
-            0, 0, 0, 0, 100.0, 0,  # pitch - high uncertainty (no data)
-            0, 0, 0, 0, 0, 100.0  # yaw - high uncertainty (no data)
+            0.001, 0, 0, 0, 0, 0,  # x - good estimate
+            0.001, 0, 0, 0, 0,  # y - good estimate
+            0.001, 0, 0, 0,  # z - good estimate
+            100.0, 0, 0,  # roll - high uncertainty (no data)
+            100.0, 0,  # pitch - high uncertainty (no data)
+            100.0  # yaw - high uncertainty (no data)
         ]
 
         velocity_covariance = [
-            1.0, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
-            0, 1.0, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
-            0, 0, 1.0, 0, 0, 0,  # vz - calculated, moderate uncertainty
-            0, 0, 0, 100.0, 0, 0,  # vroll - high uncertainty (no data)
-            0, 0, 0, 0, 100.0, 0,  # vpitch - high uncertainty (no data)
-            0, 0, 0, 0, 0, 100.0  # vyaw - high uncertainty (no data)
+            0.1, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
+            0.1, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
+            0.1, 0, 0, 0,  # vz - calculated, moderate uncertainty
+            100.0, 0, 0,  # vroll - high uncertainty (no data)
+            100.0, 0,  # vpitch - high uncertainty (no data)
+            100.0  # vyaw - high uncertainty (no data)
         ]
 
         self.master.mav.odometry_send(
             int(timestamp * 1e6),  # timestamp
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame_id
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # child_frame_id
+            mavutil.mavlink.MAV_FRAME_LOCAL_FRD,  # frame_id
+            mavutil.mavlink.MAV_FRAME_BODY_FRD,  # child_frame_id
             x, y, z,  # position
             [qw, qx, qy, qz],  # orientation quaternion
             vx, vy, vz,  # linear velocity
@@ -1050,9 +1050,9 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
-        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
-        # self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
+        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
