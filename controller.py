@@ -1065,7 +1065,7 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
-        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        self.send_position_estimate(y / 1000, x / 1000, z / 1000)
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
         # self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
         self.send_distance_sensor(z / 10)
