@@ -974,6 +974,21 @@ class Controller:
             velocity_covariance  # velocity covariance
         )
 
+    def send_distance_sensor(self, distance_cm):
+        self.master.mav.distance_sensor_send(
+            time_boot_ms=int(time.time() * 1000) % (2**32),
+            min_distance=1,
+            max_distance=300,
+            current_distance=distance_cm,
+            type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,  # Laser type
+            id=0,
+            orientation=mavutil.mavlink.MAV_SENSOR_ORIENTATION_DOWNWARD,  # Downward
+            covariance=50,
+            horizontal_fov=0,  # Unknown FOV
+            vertical_fov=0,  # Unknown FOV
+            quaternion=[1, 0, 0, 0]  # No rotation quaternion
+        )
+
     def run_camera_localization(self):
         position_size = 1 + 3 + 6 * 4  # 1 byte + 3 byte padding + 6 floats (4 bytes each)
         shm_name = "/pos_shared_mem"
@@ -1050,9 +1065,10 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z, vx, vy, vz):
-        # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
-        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
+        # self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
+        self.send_distance_sensor(z / 10)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
