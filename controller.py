@@ -982,7 +982,7 @@ class Controller:
             current_distance=distance_cm,
             type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,  # Laser type
             id=0,
-            orientation=mavutil.mavlink.MAV_SENSOR_ORIENTATION_DOWNWARD,  # Downward
+            orientation=mavutil.mavlink.MAV_SENSOR_ROTATION_PITCH_270,  # Downward
             covariance=50,
             horizontal_fov=0,  # Unknown FOV
             vertical_fov=0,  # Unknown FOV
