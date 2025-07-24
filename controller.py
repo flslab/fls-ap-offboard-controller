@@ -979,11 +979,11 @@ class Controller:
             time_boot_ms=int(time.time() * 1000) % (2**32),
             min_distance=1,
             max_distance=300,
-            current_distance=distance_cm,
+            current_distance=int(distance_cm),
             type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,  # Laser type
             id=0,
             orientation=mavutil.mavlink.MAV_SENSOR_ROTATION_PITCH_270,  # Downward
-            covariance=50,
+            covariance=0,
             horizontal_fov=0,  # Unknown FOV
             vertical_fov=0,  # Unknown FOV
             quaternion=[1, 0, 0, 0]  # No rotation quaternion

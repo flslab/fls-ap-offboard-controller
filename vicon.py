@@ -102,8 +102,8 @@ class ViconWrapper(threading.Thread):
 
         except KeyboardInterrupt:
             self.logger.error("\nScript interrupted by user.")
-        # except Exception as e:
-        #     self.logger.error(f"An unexpected error occurred: {e}")
+        except Exception as e:
+            self.logger.error(f"An unexpected error occurred: {e}")
 
         finally:
             now = datetime.now()
