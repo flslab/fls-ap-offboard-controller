@@ -1259,8 +1259,6 @@ if __name__ == "__main__":
         c.test_motors()
         exit()
 
-    c.request_data()
-
     if args.localize:
         localize_thread = Thread(target=c.run_camera_localization)
         lat = 12345
@@ -1305,6 +1303,7 @@ if __name__ == "__main__":
         vicon_thread = ViconWrapper(log_level=log_level)
         vicon_thread.start()
 
+    c.request_data()
     c.check_preflight()
 
     if not c.set_mode('GUIDED'):
