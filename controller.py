@@ -985,7 +985,7 @@ class Controller:
             type=mavutil.mavlink.MAV_DISTANCE_SENSOR_LASER,  # Laser type
             id=0,
             orientation=mavutil.mavlink.MAV_SENSOR_ROTATION_PITCH_270,  # Downward
-            covariance=0,
+            covariance=1,
             horizontal_fov=0,  # Unknown FOV
             vertical_fov=0,  # Unknown FOV
             quaternion=[1, 0, 0, 0]  # No rotation quaternion
