@@ -370,6 +370,9 @@ class Controller:
 
             self.logger.debug(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
 
+        if not independent:
+            self.logger.info(f"flight duration: {elapsed:.2f}s,  battery voltage: {voltage} V")
+
     def send_trajectory_message(self, point_num, pos, vel, acc, time_horizon):
         """Send a trajectory setpoint using MAVLink TRAJECTORY message."""
         # MAV_TRAJECTORY_REPRESENTATION_WAYPOINTS = 0
@@ -1107,7 +1110,7 @@ class Controller:
             time.sleep(2)
             flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
         else:
-            flight_thread = Thread(target=self.test_trajectory_3())
+            flight_thread = Thread(target=self.test_trajectory_4())
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
