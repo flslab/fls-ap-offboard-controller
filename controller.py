@@ -1072,8 +1072,8 @@ class Controller:
         # Do not try to send positive z coordinates. Otherwise, the drone keeps ascending.
         # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
-        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000, vy / 1000, vx / 1000, -vz / 1000)
-        self.send_distance_sensor(z / 10)
+        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
+        self.send_distance_sensor(z / 10 - 5)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
