@@ -850,6 +850,10 @@ class Controller:
                           [0, max_v, 0],
                       ] * 5
 
+        for i in range(40):
+            self.send_position_target(0, 0, -self.takeoff_altitude)
+            time.sleep(1 / 10)
+
         for ori in waypoints:
             for i in range(5):
                 self.send_attitude_target_deg(*ori)
