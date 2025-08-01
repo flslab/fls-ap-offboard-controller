@@ -428,7 +428,7 @@ class Controller:
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_velocity_target(self, vx, vy, vz):
@@ -1090,10 +1090,10 @@ class Controller:
         vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
         # Positive z is down, negative z is up.
         # Do not try to send positive z coordinates. Otherwise, the drone keeps ascending.
-        # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
-        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
-        self.send_distance_sensor(z / 10 - 5)
+        # self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
+        self.send_distance_sensor(z / 10)
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
