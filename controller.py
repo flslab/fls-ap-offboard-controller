@@ -347,8 +347,15 @@ class Controller:
             self.send_motor_test(i + 1, throttle_type=0, throttle_value=10, duration=1)
             time.sleep(0.25)
 
-    def watch_battery(self, independent=False):
+    def watch_battery(self, independent=False, poll_interval=1):
+        """
+        Polls battery status without blocking.
+        If independent=True, runs until flight_duration expires.
+        Otherwise, runs until self.running_battery_watcher is False.
+        """
         start = time.perf_counter()
+        last_log_time = 0
+        voltage = current = 'N/A'
 
         while self.running_battery_watcher or independent:
             elapsed = time.perf_counter() - start
@@ -356,21 +363,25 @@ class Controller:
             if independent and elapsed > self.flight_duration:
                 break
 
-            msg = self.master.recv_match(type=['BATTERY_STATUS'], blocking=True, timeout=1)
-            voltage = current = 'N/A'
+            # Non-blocking receive
+            msg = self.master.recv_match(type='BATTERY_STATUS', blocking=False)
 
             if msg:
-                if msg.get_type() == 'BATTERY_STATUS':
-                    voltage_raw = msg.voltages[0]
-                    voltage = voltage_raw / 1000.0 if voltage_raw != 65535 else 'N/A'
-                    current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
+                voltage_raw = msg.voltages[0]
+                voltage = voltage_raw / 1000.0 if voltage_raw != 65535 else 'N/A'
+                current = msg.current_battery / 100.0 if msg.current_battery != -1 else 'N/A'
 
-                    if isinstance(voltage, float) and voltage < self.voltage_threshold:
-                        self.failsafe = True
-                        self.logger.warning(f"Failsafe triggered due to low battery ({voltage} V)")
-                        break
+                if isinstance(voltage, float) and voltage < self.voltage_threshold:
+                    self.failsafe = True
+                    self.logger.warning(f"Failsafe triggered due to low battery ({voltage:.2f} V)")
+                    break
 
-            self.logger.debug(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
+            # Throttle logging (e.g., once per second)
+            if elapsed - last_log_time >= 1.0:
+                self.logger.debug(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
+                last_log_time = elapsed
+
+            time.sleep(poll_interval)  # prevent 100% CPU loop
 
         if not independent:
             self.logger.info(f"flight duration: {elapsed:.2f}s,  battery voltage: {voltage} V")
