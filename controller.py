@@ -285,26 +285,28 @@ class Controller:
             self.logger.error("Not connected to vehicle")
             return False
 
-        # Map the mode name to mode ID
-        mode_mapping = {
-            'STABILIZE': 0,
-            'ACRO': 1,
-            'ALT_HOLD': 2,
-            'AUTO': 3,
-            'GUIDED': 4,
-            'LOITER': 5,
-            'RTL': 6,
-            'CIRCLE': 7,
-            'POSITION': 8,
-            'LAND': 9,
-            'GUIDED_NOGPS': 20,
-        }
+        # # Map the mode name to mode ID
+        # mode_mapping = {
+        #     'STABILIZE': 0,
+        #     'ACRO': 1,
+        #     'ALT_HOLD': 2,
+        #     'AUTO': 3,
+        #     'GUIDED': 4,
+        #     'LOITER': 5,
+        #     'RTL': 6,
+        #     'CIRCLE': 7,
+        #     'POSITION': 8,
+        #     'LAND': 9,
+        #     'GUIDED_NOGPS': 20,
+        # }
 
-        if mode not in mode_mapping:
-            self.logger.error(f"Unknown mode: {mode}")
-            return False
+        modes = self.master.mode_mapping()
 
-        mode_id = mode_mapping[mode]
+        # if mode not in mode_mapping:
+        #     self.logger.error(f"Unknown mode: {mode}")
+        #     return False
+
+        mode_id = modes.get(mode)
 
         # Send mode change command
         self.master.mav.command_long_send(
@@ -1100,6 +1102,10 @@ class Controller:
             1,  # 0 if angle_x, angle_y should be used. 1 if x, y, z fields contain position information
         )
 
+    def autotune(self):
+        self.set_mode("AUTOTUNE")
+        input("press enter to land")
+
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
         time.sleep(3)
@@ -1113,6 +1119,8 @@ class Controller:
         elif args.trajectory:
             time.sleep(2)
             flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
+        elif args.autotune:
+            flight_thread = Thread(target=self.autotune)
         else:
             flight_thread = Thread(target=self.test_trajectory_4())
             # flight_thread = Thread(target=self.start_mission)
@@ -1235,6 +1243,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
+    arg_parser.add_argument("--autotune", action="store_true", help="perform PID autotune")
     args = arg_parser.parse_args()
 
     log_level = logging.DEBUG if args.debug or args.status else logging.INFO
