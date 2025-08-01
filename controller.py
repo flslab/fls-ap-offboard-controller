@@ -1103,6 +1103,7 @@ class Controller:
         )
 
     def autotune(self):
+        time.sleep(1)
         self.set_mode("AUTOTUNE")
         input("press enter to land")
 
