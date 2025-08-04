@@ -821,15 +821,15 @@ class Controller:
     def test_trajectory_3(self):
         waypoints = [
                         [0, 0, -self.takeoff_altitude],
-                        [0, 0.2, -self.takeoff_altitude],
+                        [0, 0.25, -self.takeoff_altitude],
                     ] * 5
 
         waypoints_2 = [
                           [0, 0, -self.takeoff_altitude],
-                          [0.2, 0, -self.takeoff_altitude],
+                          [0.25, 0, -self.takeoff_altitude],
                       ] * 5
 
-        for i in range(20):
+        for i in range(40):
             self.send_position_target(*waypoints[0])
             time.sleep(1 / 10)
 
@@ -1134,7 +1134,7 @@ class Controller:
         elif args.autotune:
             flight_thread = Thread(target=self.autotune)
         else:
-            flight_thread = Thread(target=self.test_trajectory_4)
+            flight_thread = Thread(target=self.test_trajectory_3)
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
