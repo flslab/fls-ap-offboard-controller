@@ -424,11 +424,11 @@ class Controller:
             self.master.target_system,
             self.master.target_component,
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,
-            0b100111111000,  # only x, y, z position and yaw
+            0b110111111000,  # only x, y, z position
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            0, 0  # yaw, yaw_rate
         )
 
     def send_velocity_target(self, vx, vy, vz):
