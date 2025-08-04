@@ -821,12 +821,12 @@ class Controller:
     def test_trajectory_3(self):
         waypoints = [
                         [0, 0, -self.takeoff_altitude],
-                        [0, 0.25, -self.takeoff_altitude],
+                        [0, 0.5, -self.takeoff_altitude],
                     ] * 5
 
         waypoints_2 = [
                           [0, 0, -self.takeoff_altitude],
-                          [0.25, 0, -self.takeoff_altitude],
+                          [0.5, 0, -self.takeoff_altitude],
                       ] * 5
 
         for i in range(40):
