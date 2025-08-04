@@ -1134,7 +1134,7 @@ class Controller:
         elif args.autotune:
             flight_thread = Thread(target=self.autotune)
         else:
-            flight_thread = Thread(target=self.test_trajectory_4())
+            flight_thread = Thread(target=self.test_trajectory_4)
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
