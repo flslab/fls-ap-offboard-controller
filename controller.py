@@ -117,6 +117,7 @@ class Controller:
         self.logger.info("Waiting for system initialization...")
         time.sleep(5)
 
+    def set_initial_yaw(self):
         msg = self.master.recv_match(type='ATTITUDE', blocking=True)
         if msg:
             yaw_rad = msg.yaw
@@ -1341,6 +1342,7 @@ if __name__ == "__main__":
 
     c.request_data()
     c.check_preflight()
+    c.set_initial_yaw()
 
     if not c.set_mode('GUIDED'):
         pass
