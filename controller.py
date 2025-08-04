@@ -967,18 +967,18 @@ class Controller:
 
         # Position covariance (6x6 matrix, but we send diagonal elements)
         pose_covariance = [
-            0.001, 0, 0, 0, 0, 0,  # x - good estimate
-            0.001, 0, 0, 0, 0,  # y - good estimate
-            0.001, 0, 0, 0,  # z - good estimate
+            0.0001, 0, 0, 0, 0, 0,  # x - good estimate
+            0.0001, 0, 0, 0, 0,  # y - good estimate
+            0.0001, 0, 0, 0,  # z - good estimate
             100.0, 0, 0,  # roll - high uncertainty (no data)
             100.0, 0,  # pitch - high uncertainty (no data)
             100.0  # yaw - high uncertainty (no data)
         ]
 
         velocity_covariance = [
-            0.1, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
-            0.1, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
-            0.1, 0, 0, 0,  # vz - calculated, moderate uncertainty
+            0.001, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
+            0.001, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
+            0.001, 0, 0, 0,  # vz - calculated, moderate uncertainty
             100.0, 0, 0,  # vroll - high uncertainty (no data)
             100.0, 0,  # vpitch - high uncertainty (no data)
             100.0  # vyaw - high uncertainty (no data)
