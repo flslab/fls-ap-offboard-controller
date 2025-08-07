@@ -94,7 +94,7 @@ class ViconWrapper(threading.Thread):
                             self.logger.debug(f"Time Interval (ms): {time_interval * 1000}")
 
                             # slow down loop
-                            time.sleep(0.02)
+                            time.sleep(0.09)
                         else:
                             self.logger.warning(f"\tPosition (mm): Occluded or no data")
 
