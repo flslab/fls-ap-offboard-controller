@@ -68,7 +68,7 @@ class ViconWrapper(threading.Thread):
                         object_count = client.get_unlabeled_marker_count()
                         self.logger.debug(f"\tUnlabeled marker count: {object_count}")
 
-                    if object_count is not None and object_count >= 1:
+                    if object_count is not None and object_count == 1:
                         translation = None
 
                         if self.labeled_object:
@@ -96,6 +96,7 @@ class ViconWrapper(threading.Thread):
                             self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
                             self.logger.debug(f"Time Interval (ms): {time_interval * 1000}")
 
+                            # slow down loop
                             time.sleep(0.02)
                         else:
                             self.logger.warning(f"\tPosition (mm): Occluded or no data")
