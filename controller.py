@@ -1096,15 +1096,26 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z, timestamp):
+        # st = time.time()
+        # vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
+        # # Positive z is down, negative z is up.
+        # # Do not try to send positive z coordinates. Otherwise, the drone keeps ascending.
+        # # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        # # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
+        # self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
+        # self.send_distance_sensor(z / 10)
+        # self.logger.debug(f"Time to send odom message (ms): {time.time() * 1000 - st * 1000:.1f}")
+
         st = time.time()
         vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
-        # Positive z is down, negative z is up.
-        # Do not try to send positive z coordinates. Otherwise, the drone keeps ascending.
-        # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
-        # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
+        t1 = time.time()
         self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
+        t2 = time.time()
         self.send_distance_sensor(z / 10)
-        self.logger.debug(f"Time to send odom message (ms): {time.time() * 1000 - st * 1000:.1f}")
+        t3 = time.time()
+
+        self.logger.debug(
+            f"Velocity est: {(t1 - st) * 1000:.1f} ms, Odom send: {(t2 - t1) * 1000:.1f} ms, Distance send: {(t3 - t2) * 1000:.1f} ms, Total: {(t3 - st) * 1000:.1f} ms")
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
