@@ -51,6 +51,7 @@ class ViconWrapper(threading.Thread):
             # Set axis mapping for standard coordinate systems
             client.set_axis_mapping(Direction.Forward, Direction.Left, Direction.Up)
 
+            last_time = time.time()
             while self.running:
                 if client.get_frame():
                     frame_num = client.get_frame_number()
@@ -86,9 +87,8 @@ class ViconWrapper(threading.Thread):
                             if callable(self.callback):
                                 self.callback(pos_x, pos_y, pos_z, timestamp=now)
 
-                            self.logger.debug(
-                                f"\tPosition (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}\n\t"
-                                f"Time Interval (ms): {now * 1000 - self.position_log[-1]['time']:.1f}")
+                            self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}\n")
+                            self.logger.debug(f"Time Interval (ms): {now * 1000 - last_time * 1000}")
                         else:
                             self.logger.warning(f"\tPosition (mm): Occluded or no data")
 
