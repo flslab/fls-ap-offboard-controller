@@ -1352,10 +1352,6 @@ if __name__ == "__main__":
     if args.mission:
         c.send_mission_from_file(args.mission)
 
-    if not c.arm_with_retry():
-        pass
-        # exit()
-
     if args.led:
         from led import MovingDotLED
 
@@ -1365,5 +1361,8 @@ if __name__ == "__main__":
     if args.idle:
         time.sleep(args.duration)
     else:
+        if not c.arm_with_retry():
+            pass
+            # exit()
         c.start_flight()
     c.stop()
