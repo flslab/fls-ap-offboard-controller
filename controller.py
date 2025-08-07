@@ -813,7 +813,7 @@ class Controller:
                 path.append((pos.tolist(), velocity.tolist()))
         return path
 
-    def test_trajectory(self, x=0, y=0, z=0):
+    def simple_takeoff(self, x=0, y=0, z=0):
         points = [(x, y, -self.takeoff_altitude - z)]
 
         for j in range(1):
@@ -1134,7 +1134,7 @@ class Controller:
         time.sleep(2)
 
         if args.simple_takeoff:
-            flight_thread = Thread(target=self.test_trajectory)
+            flight_thread = Thread(target=self.simple_takeoff)
         elif args.fig8:
             flight_thread = Thread(target=self.fly_figure_eight)
         elif args.trajectory:
@@ -1254,7 +1254,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--stream-camera", action="store_true",
                             help="stream camera at 1/10 of original fps, works with --localize")
     arg_parser.add_argument("-t", "--duration", type=float, default=15.0, help="flight duration in seconds")
-    arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate, works with --localize")
+    arg_parser.add_argument("--fps", type=int, default=120, help="position estimation rate, works with --localize and --vicon")
     arg_parser.add_argument("--takeoff-altitude", type=float, default=1.0, help="takeoff altitude in meter")
     arg_parser.add_argument("--land-altitude", type=float, default=1.0, help="landing altitude in meter")
     arg_parser.add_argument("--voltage", type=float, default=7.4,
@@ -1333,7 +1333,7 @@ if __name__ == "__main__":
         c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
         from vicon import ViconWrapper
 
-        vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
+        vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level, fps=args.fps)
         vicon_thread.start()
     elif args.save_vicon:
         from vicon import ViconWrapper

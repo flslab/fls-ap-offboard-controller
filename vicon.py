@@ -15,13 +15,16 @@ VICON_ADDRESS = f"{VICON_PC_IP}:801"
 
 
 class ViconWrapper(threading.Thread):
-    def __init__(self, callback=None, log_level=logging.INFO, labeled_object=False):
+    def __init__(self, callback=None, log_level=logging.INFO, labeled_object=False, fps=None):
         super().__init__()
         self.running = False
         self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
         self.callback = callback
         self.position_log = []
         self.labeled_object = labeled_object
+        self.expected_time_interval = 0
+        if fps is not None:
+            self.expected_time_interval = 1 / fps
 
     def stop(self):
         self.running = False
@@ -88,9 +91,14 @@ class ViconWrapper(threading.Thread):
                             if callable(self.callback):
                                 self.callback(pos_x, pos_y, pos_z, timestamp=now)
 
-                            self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
-                            self.logger.debug(f"Time Interval (ms): {now * 1000 - last_time * 1000}")
+                            time_interval = now - last_time
                             last_time = now
+                            self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
+                            self.logger.debug(f"Time Interval (ms): {time_interval * 1000}")
+
+                            if time_interval < self.expected_time_interval:
+                                self.logger.debug(f"have to wait for {self.expected_time_interval - time_interval} sec")
+                                time.sleep(self.expected_time_interval - time_interval)
                         else:
                             self.logger.warning(f"\tPosition (mm): Occluded or no data")
 
@@ -118,9 +126,10 @@ class ViconWrapper(threading.Thread):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-t", default=10, type=int, help="time to run")
+    ap.add_argument("--fps", type=int, help="frame rate")
     args = ap.parse_args()
 
-    vw = ViconWrapper(labeled_object=False, log_level=logging.DEBUG)
+    vw = ViconWrapper(labeled_object=False, log_level=logging.DEBUG, fps=args.fps)
     vw.start()
     time.sleep(args.t)
     vw.stop()
