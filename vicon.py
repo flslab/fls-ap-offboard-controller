@@ -89,6 +89,7 @@ class ViconWrapper(threading.Thread):
 
                             self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}\n")
                             self.logger.debug(f"Time Interval (ms): {now * 1000 - last_time * 1000}")
+                            last_time = now
                         else:
                             self.logger.warning(f"\tPosition (mm): Occluded or no data")
 
