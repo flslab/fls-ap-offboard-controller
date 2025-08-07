@@ -1044,6 +1044,7 @@ class Controller:
                 #                        cov_twist])
 
                 self.send_position_estimate(y, -x, -z)
+                self.send_distance_sensor(z * 10)
 
                 # self.master.mav.vision_position_estimate_send(
                 #     int((time.time()) * 1000000),
