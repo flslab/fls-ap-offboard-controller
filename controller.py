@@ -1096,6 +1096,7 @@ class Controller:
             time.sleep(1 / args.fps)
 
     def send_vicon_position(self, x, y, z, timestamp):
+        self.logger.debug(f"time to get data and make call (ms): {time.time() * 1000 - timestamp * 1000:.1f}")
         vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
         # Positive z is down, negative z is up.
         # Do not try to send positive z coordinates. Otherwise, the drone keeps ascending.
@@ -1103,6 +1104,7 @@ class Controller:
         # self.send_velocity_estimate(vy / 1000, vx / 1000, -vz / 1000)
         self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
         self.send_distance_sensor(z / 10)
+        self.logger.debug(f"Time to send odom message (ms): {time.time() * 1000 - timestamp * 1000:.1f}")
 
     def send_landing_target(self, angle_x, angle_y, distance, x=0, y=0, z=0):
         """
