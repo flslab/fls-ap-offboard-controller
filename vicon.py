@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import os.path
@@ -64,7 +65,7 @@ class ViconWrapper(threading.Thread):
                         object_count = client.get_unlabeled_marker_count()
                         self.logger.debug(f"\tUnlabeled marker count: {object_count}")
 
-                    if object_count is not None and object_count == 1:
+                    if object_count is not None and object_count >= 1:
                         translation = None
 
                         if self.labeled_object:
@@ -115,9 +116,13 @@ class ViconWrapper(threading.Thread):
 
 
 if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-t", default=10, type=int, help="time to run")
+    args = ap.parse_args()
+
     vw = ViconWrapper(labeled_object=False, log_level=logging.DEBUG)
     vw.start()
-    time.sleep(30)
+    time.sleep(args.t)
     vw.stop()
 
     # July 15
