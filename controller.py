@@ -946,14 +946,6 @@ class Controller:
             time.sleep(1 / frequency)
 
     def send_position_estimate(self, x, y, z):
-        covariance = np.array([0, 0, 0, 0, 0, 0,
-                               0, 0, 0, 0, 0,
-                               0, 0, 0, 0,
-                               0, 0, 0,
-                               0, 0,
-                               0])
-        reset_counter = 1
-
         self.master.mav.vision_position_estimate_send(
             int((time.time()) * 1000000),
             x,  # X
@@ -962,8 +954,8 @@ class Controller:
             0,  # rpy_rad[0],  # Roll angle
             0,  # rpy_rad[1],  # Pitch angle
             0,  # rpy_rad[2],  # Yaw angle
-            covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
-            reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
+            pose_covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
+            1  # Estimate reset counter. Increment every time pose estimate jumps.
         )
 
     def send_velocity_estimate(self, vx, vy, vz, covariance=None):
@@ -1103,7 +1095,8 @@ class Controller:
         st = time.time()
         vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
         t1 = time.time()
-        self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
+        self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
+        # self.send_vision_odometry(y / 1000, x / 1000, -z / 1000 + 0.05, vy / 1000, vx / 1000, -vz / 1000)
         t2 = time.time()
         self.send_distance_sensor(z / 10)
         t3 = time.time()
