@@ -55,7 +55,7 @@ class ViconWrapper(threading.Thread):
             while self.running:
                 if client.get_frame():
                     frame_num = client.get_frame_number()
-                    self.logger.debug(f"--- Frame {frame_num} ---")
+                    self.logger.debug(f"\n--- Frame {frame_num} ---")
 
                     if self.labeled_object:
                         object_count = client.get_subject_count()
@@ -87,7 +87,7 @@ class ViconWrapper(threading.Thread):
                             if callable(self.callback):
                                 self.callback(pos_x, pos_y, pos_z, timestamp=now)
 
-                            self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}\n")
+                            self.logger.debug(f"Position (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
                             self.logger.debug(f"Time Interval (ms): {now * 1000 - last_time * 1000}")
                             last_time = now
                         else:
