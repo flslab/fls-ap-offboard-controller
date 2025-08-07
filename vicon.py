@@ -15,16 +15,13 @@ VICON_ADDRESS = f"{VICON_PC_IP}:801"
 
 
 class ViconWrapper(threading.Thread):
-    def __init__(self, callback=None, log_level=logging.INFO, labeled_object=False, fps=None):
+    def __init__(self, callback=None, log_level=logging.INFO, labeled_object=False):
         super().__init__()
         self.running = False
         self.logger = LoggerFactory("Vicon", level=log_level).get_logger()
         self.callback = callback
         self.position_log = []
         self.labeled_object = labeled_object
-        self.expected_time_interval = 0
-        if fps is not None:
-            self.expected_time_interval = 1 / fps
 
     def stop(self):
         self.running = False
@@ -125,10 +122,9 @@ class ViconWrapper(threading.Thread):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-t", default=10, type=int, help="time to run")
-    ap.add_argument("--fps", type=int, help="frame rate")
     args = ap.parse_args()
 
-    vw = ViconWrapper(labeled_object=False, log_level=logging.DEBUG, fps=args.fps)
+    vw = ViconWrapper(labeled_object=False, log_level=logging.DEBUG)
     vw.start()
     time.sleep(args.t)
     vw.stop()
