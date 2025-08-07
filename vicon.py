@@ -87,7 +87,8 @@ class ViconWrapper(threading.Thread):
                                 self.callback(pos_x, pos_y, pos_z, timestamp=now)
 
                             self.logger.debug(
-                                f"\tPosition (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}")
+                                f"\tPosition (mm): X={pos_x:.2f}, Y={pos_y:.2f}, Z={pos_z:.2f}\n\t"
+                                f"Time Interval (ms): {now * 1000 - self.position_log[-1]['time']:.1f}")
                         else:
                             self.logger.warning(f"\tPosition (mm): Occluded or no data")
 
