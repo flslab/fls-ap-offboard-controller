@@ -1262,6 +1262,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--trajectory", type=str, help="path to trajectory file to follow")
     arg_parser.add_argument("--repeat-trajectory", type=int, default=3, help="number of trajectory repetitions")
     arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
+    arg_parser.add_argument("--idle", action="store_true", help="sit idle")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
     arg_parser.add_argument("--autotune", action="store_true", help="perform PID autotune")
@@ -1361,6 +1362,8 @@ if __name__ == "__main__":
         led = MovingDotLED(brightness=args.led_brightness)
         led.start()
 
-    # time.sleep(10)
-    c.start_flight()
+    if args.idle:
+        time.sleep(args.duration)
+    else:
+        c.start_flight()
     c.stop()
