@@ -82,7 +82,7 @@ class Controller:
     def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
                  sim=False,
                  device="/dev/ttyAMA0",
-                 baudrate=115200):
+                 baudrate=921600):
         self.device = device
         self.baudrate = baudrate
         self.master = None
