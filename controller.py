@@ -17,6 +17,25 @@ from velocity_estimator import VelocityEstimator
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
 
+# Position covariance (6x6 matrix, but we send diagonal elements)
+pose_covariance = [
+    0.0001, 0, 0, 0, 0, 0,  # x - good estimate
+    0.0001, 0, 0, 0, 0,  # y - good estimate
+    0.0001, 0, 0, 0,  # z - good estimate
+    100.0, 0, 0,  # roll - high uncertainty (no data)
+    100.0, 0,  # pitch - high uncertainty (no data)
+    100.0  # yaw - high uncertainty (no data)
+]
+
+velocity_covariance = [
+    0.001, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
+    0.001, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
+    0.001, 0, 0, 0,  # vz - calculated, moderate uncertainty
+    100.0, 0, 0,  # vroll - high uncertainty (no data)
+    100.0, 0,  # vpitch - high uncertainty (no data)
+    100.0  # vyaw - high uncertainty (no data)
+]
+
 
 def truncate(f, n):
     return int(f * 10 ** n) / 10 ** n
@@ -968,39 +987,14 @@ class Controller:
         if timestamp is None:
             timestamp = time.time()
 
-        # Default quaternion (no rotation) - w=1, x=y=z=0
-        qw, qx, qy, qz = 1.0, 0.0, 0.0, 0.0
-
-        # No angular velocities
-        vroll, vpitch, vyaw = 0.0, 0.0, 0.0
-
-        # Position covariance (6x6 matrix, but we send diagonal elements)
-        pose_covariance = [
-            0.0001, 0, 0, 0, 0, 0,  # x - good estimate
-            0.0001, 0, 0, 0, 0,  # y - good estimate
-            0.0001, 0, 0, 0,  # z - good estimate
-            100.0, 0, 0,  # roll - high uncertainty (no data)
-            100.0, 0,  # pitch - high uncertainty (no data)
-            100.0  # yaw - high uncertainty (no data)
-        ]
-
-        velocity_covariance = [
-            0.001, 0, 0, 0, 0, 0,  # vx - calculated, moderate uncertainty
-            0.001, 0, 0, 0, 0,  # vy - calculated, moderate uncertainty
-            0.001, 0, 0, 0,  # vz - calculated, moderate uncertainty
-            100.0, 0, 0,  # vroll - high uncertainty (no data)
-            100.0, 0,  # vpitch - high uncertainty (no data)
-            100.0  # vyaw - high uncertainty (no data)
-        ]
-
         self.master.mav.odometry_send(
             int(timestamp * 1e6),  # timestamp
             mavutil.mavlink.MAV_FRAME_LOCAL_FRD,  # frame_id
             mavutil.mavlink.MAV_FRAME_BODY_FRD,  # child_frame_id
             x, y, z,  # position
-            [qw, qx, qy, qz],  # orientation quaternion
+            [1.0, 0.0, 0.0, 0.0],  # Default quaternion (no rotation) - w=1, x=y=z=0: qw, qx, qy, qz
             vx, vy, vz,  # linear velocity
-            vroll, vpitch, vyaw,  # angular velocity
+            0.0, 0.0, 0.0,  # angular velocity: vroll, vpitch, vyaw
             pose_covariance,  # pose covariance
             velocity_covariance  # velocity covariance
         )
