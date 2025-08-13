@@ -1024,58 +1024,11 @@ class Controller:
                 last_valid = time.time()
                 x, y, z, roll, pitch, yaw = struct.unpack("<6f", data[4:28])
                 # x, y, z = struct.unpack("<3f", data[4:16])
-                x = truncate(x, 3)
-                y = truncate(y, 3)
-                z = truncate(z, 3)
                 # self.logger.debug(f"Sending position estimation: ({-y}, {x}, {-z} | {roll}, {pitch}, {yaw})")
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z})")
 
-                rpy_rad = np.array([roll, pitch, yaw])
-
-                # Setup covariance data, which is the upper right triangle of the covariance matrix, see here: https://files.gitter.im/ArduPilot/VisionProjects/1DpU/image.png
-                # Attemp #01: following this formula https://github.com/IntelRealSense/realsense-ros/blob/development/realsense2_camera/src/base_realsense_node.cpp#L1406-L1411
-                cov_pose = linear_accel_cov * pow(10, 3 - int(3))
-                cov_twist = angular_vel_cov * pow(10, 1 - int(3))
-                # covariance = np.array([cov_pose, 0, 0, 0, 0, 0,
-                #                        cov_pose, 0, 0, 0, 0,
-                #                        cov_pose, 0, 0, 0,
-                #                        cov_twist, 0, 0,
-                #                        cov_twist, 0,
-                #                        cov_twist])
-
                 self.send_position_estimate(y, -x, -z)
                 # self.send_distance_sensor(z * 10)
-
-                # self.master.mav.vision_position_estimate_send(
-                #     int((time.time()) * 1000000),
-                #     0,  # X y
-                #     0,  # Y -x
-                #     0,  # Z (down is negative)
-                #     0,  # Roll angle
-                #     0,  # Pitch angle
-                #     0,  # Yaw angle
-                #     covariance,  # Row-major representation of pose 6x6 cross-covariance matrix
-                #     reset_counter  # Estimate reset counter. Increment every time pose estimate jumps.
-                # )
-                # q = [1.0, 0.0, 0.0, 0.0]  # identity quaternion (w, x, y, z)
-                # pose_cov = [0.0] * 21
-                # vel_cov = [0.0] * 21
-                # self.master.mav.odometry_send(
-                #     time_usec=usec,
-                #     frame_id=1,          # MAV_FRAME_LOCAL_NED
-                #     child_frame_id=1,    # arbitrary, just be consistent
-                #     x=x, y=y, z=z,
-                #     q=q,
-                #     vx=0, vy=0, vz=0,
-                #     rollspeed=0,
-                #     pitchspeed=0,
-                #     yawspeed=0,
-                #     pose_covariance=pose_cov,
-                #     velocity_covariance=vel_cov,
-                #     reset_counter=0,
-                #     estimator_type=0,   # MAV_ESTIMATOR_TYPE_NAIVE
-                #     quality=0           # 0-100, optional
-                # )
             else:
                 pass
                 # print("Invalid data received")
