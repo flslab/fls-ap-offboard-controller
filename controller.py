@@ -100,7 +100,7 @@ class Controller:
         self.sim = sim
         self.initial_yaw = 0
         self.mission_items = []
-        self.velocity_estimator = VelocityEstimator(filter_alpha=0.5)
+        self.velocity_estimator = VelocityEstimator(filter_alpha=0.1)
 
     def connect(self):
         if self.sim:
