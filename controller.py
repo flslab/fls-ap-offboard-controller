@@ -17,6 +17,8 @@ from velocity_estimator import VelocityEstimator
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
 
+MIN_CELL_VOLT = 3.7
+
 # Position covariance (6x6 matrix, but we send diagonal elements)
 pose_covariance = [
     0.0001, 0, 0, 0, 0, 0,  # x - good estimate
@@ -90,7 +92,8 @@ class Controller:
         self.is_armed = False
         self.connected = False
         self.flight_duration = flight_duration
-        self.voltage_threshold = voltage_threshold
+        self.battery_cells = 2
+        self.voltage_threshold = self.battery_cells * MIN_CELL_VOLT
         self.takeoff_altitude = takeoff_altitude
         self.land_altitude = land_altitude
         self.start_time = time.time()
@@ -142,6 +145,26 @@ class Controller:
             yaw_rad = msg.yaw
             self.logger.info(f"initial yaw in radians: {yaw_rad}")
             self.initial_yaw = yaw_rad
+
+    def set_battery_cells(self):
+        param_name = "OSD_CELL_COUNT"
+        self.master.mav.param_request_read_send(
+            self.master.target_system,  # target system
+            self.master.target_component,  # target component
+            param_name.encode('utf-8'),  # parameter name (bytes)
+            -1  # param index, -1 means use the name
+        )
+
+        message = self.master.recv_match(type='PARAM_VALUE', blocking=True)
+        if message is None:
+            self.logger.warning("Could not determine battery cell count")
+
+        if message.param_id.decode('utf-8').strip('\x00') == param_name:
+            self.logger.info(f"Parameter {param_name}: {message.param_value}")
+
+        self.battery_cells = message.param_value
+        if self.battery_cells > 0:
+            self.voltage_threshold = MIN_CELL_VOLT * self.battery_cells
 
     def reboot(self):
         self.master.mav.command_long_send(
@@ -1298,6 +1321,7 @@ if __name__ == "__main__":
     c.request_data()
     c.check_preflight()
     c.set_initial_yaw()
+    c.set_battery_cells()
 
     if not c.set_mode('GUIDED'):
         pass
