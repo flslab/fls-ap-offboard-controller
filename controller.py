@@ -159,7 +159,7 @@ class Controller:
         if message is None:
             self.logger.warning("Could not determine battery cell count")
 
-        if message.param_id.decode('utf-8').strip('\x00') == param_name:
+        if message.param_id.strip('\x00') == param_name:
             self.logger.info(f"Parameter {param_name}: {message.param_value}")
 
         self.battery_cells = message.param_value
