@@ -902,15 +902,21 @@ class Controller:
         max_v = 5
         waypoints = [
                         [-max_v, 0, 0],
+                        [0, 0, 0],
                         [max_v, 0, 0],
+                        [0, 0, 0],
                         [max_v, 0, 0],
+                        [0, 0, 0],
                         [-max_v, 0, 0],
                     ] * 5
 
         waypoints_2 = [
                           [0, max_v, 0],
+                          [0, 0, 0],
                           [0, -max_v, 0],
+                          [0, 0, 0],
                           [0, -max_v, 0],
+                          [0, 0, 0],
                           [0, max_v, 0],
                       ] * 5
 
