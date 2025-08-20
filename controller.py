@@ -454,7 +454,7 @@ class Controller:
         )
         self.logger.debug(f"Sent trajectory point {point_num}: Pos={pos}, Vel={vel}, Acc={acc}")
 
-    def send_position_target(self, x, y, z):
+    def send_position_target(self, x, y, z, yaw=0):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
@@ -471,10 +471,10 @@ class Controller:
             x, y, z,
             0, 0, 0,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            yaw, 0  # yaw, yaw_rate
         )
 
-    def send_velocity_target(self, vx, vy, vz):
+    def send_velocity_target(self, vx, vy, vz, yaw=0):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
@@ -491,10 +491,10 @@ class Controller:
             0, 0, 0,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            yaw, 0  # yaw, yaw_rate
         )
 
-    def send_position_velocity_target(self, x, y, z, vx, vy, vz):
+    def send_position_velocity_target(self, x, y, z, vx, vy, vz, yaw=0):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
@@ -511,10 +511,10 @@ class Controller:
             x, y, z,
             vx, vy, vz,  # velocity
             0, 0, 0,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            yaw, 0  # yaw, yaw_rate
         )
 
-    def send_acceleration_target(self, ax, ay, az):
+    def send_acceleration_target(self, ax, ay, az, yaw=0):
         """
         Sends waypoints in local NED frame
         X is forward, Y is right, Z is down with origin fixed relative to ground
@@ -529,7 +529,7 @@ class Controller:
             0, 0, 0,
             0, 0, 0,  # velocity
             ax, ay, az,  # acceleration
-            self.initial_yaw, 0  # yaw, yaw_rate
+            yaw, 0  # yaw, yaw_rate
         )
 
     def send_attitude_target_deg(self, roll_deg, pitch_deg, yaw_deg, thrust=0.5):
