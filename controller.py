@@ -1119,8 +1119,10 @@ class Controller:
             flight_thread = Thread(target=self.send_trajectory_from_file, args=(args.trajectory,))
         elif args.autotune:
             flight_thread = Thread(target=self.autotune)
-        else:
+        elif args.tune_pos:
             flight_thread = Thread(target=self.test_trajectory_3)
+        elif args.tune_att:
+            flight_thread = Thread(target=self.test_trajectory_4)
             # flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
@@ -1243,6 +1245,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
     arg_parser.add_argument("--autotune", action="store_true", help="perform PID autotune")
+    arg_parser.add_argument("--tune-att", action="store_true", help="fly tune pattern using attitude command")
+    arg_parser.add_argument("--tune-pos", action="store_true", help="fly tune pattern using position command")
     args = arg_parser.parse_args()
 
     log_level = logging.DEBUG if args.debug or args.status else logging.INFO
