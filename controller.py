@@ -1227,6 +1227,8 @@ if __name__ == "__main__":
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
+    arg_parser.add_argument("--rigid-body-name", type=str, default="cffls",
+                            help="the name of the rigid body that represents the FLS in mocap tracking system, works with --vicon.")
     arg_parser.add_argument("--save-vicon", action="store_true", help="save Vicon tracking data only")
     arg_parser.add_argument("--save-camera", action="store_true",
                             help="save camera at 1/10 of original fps, works with --localize")
@@ -1312,15 +1314,21 @@ if __name__ == "__main__":
         alt = 0
         c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
         c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
-        from vicon import ViconWrapper
 
-        vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
-        vicon_thread.start()
+        from mocap import MocapWrapper
+        mocap_wrapper = MocapWrapper(args.rigid_body_name)
+        mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[4])
+        # from vicon import ViconWrapper
+
+        # vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
+        # vicon_thread.start()
     elif args.save_vicon:
-        from vicon import ViconWrapper
+        from mocap import MocapWrapper
+        mocap_wrapper = MocapWrapper(args.rigid_body_name)
+        # from vicon import ViconWrapper
 
-        vicon_thread = ViconWrapper(log_level=log_level)
-        vicon_thread.start()
+        # vicon_thread = ViconWrapper(log_level=log_level)
+        # vicon_thread.start()
 
     c.request_data()
     c.check_preflight()
