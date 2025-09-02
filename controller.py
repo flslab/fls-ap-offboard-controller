@@ -1075,7 +1075,7 @@ class Controller:
         # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
         self.send_vision_odometry(y, x, -z, vy, vx, -vz)
         # t2 = time.time()
-        self.send_distance_sensor(z * 10)
+        # self.send_distance_sensor(z * 10)
         # t3 = time.time()
 
         # self.logger.debug(
