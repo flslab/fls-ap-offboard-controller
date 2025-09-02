@@ -38,6 +38,7 @@ class MocapWrapper(threading.Thread):
         with open(file_path, "w") as f:
             json.dump({"frames": self.all_frames}, f)
         self.logger.info(f"Mocap log saved in {file_path}")
+        self.join()
 
     def run(self):
         mc = motioncapture.connect(mocap_system_type, {'hostname': host_name})

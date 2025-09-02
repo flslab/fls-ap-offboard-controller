@@ -1212,7 +1212,8 @@ class Controller:
             localize_thread.join()
 
         if args.vicon or args.save_vicon:
-            vicon_thread.stop()
+            mocap_wrapper.close()
+            # vicon_thread.stop()
 
 
 if __name__ == "__main__":
