@@ -1051,7 +1051,7 @@ class Controller:
                 self.logger.debug(f"Sending position estimation: ({y}, {-x}, {-z})")
 
                 self.send_position_estimate(y, -x, -z)
-                # self.send_distance_sensor(z * 10)
+                self.send_distance_sensor(z * 10)
             else:
                 pass
                 # print("Invalid data received")
