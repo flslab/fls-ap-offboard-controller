@@ -1231,7 +1231,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
-    arg_parser.add_argument("--rigid-body-name", type=str, default="cffls",
+    arg_parser.add_argument("--rigid-body-name", type=str, default="fls_ap_y",
                             help="the name of the rigid body that represents the FLS in mocap tracking system, works with --vicon.")
     arg_parser.add_argument("--save-vicon", action="store_true", help="save Vicon tracking data only")
     arg_parser.add_argument("--save-camera", action="store_true",
