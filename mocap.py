@@ -23,6 +23,7 @@ class MocapWrapper(threading.Thread):
 
         self.body_name = body_name
         self.on_pose = None
+        self.set_origin = None
         self._stay_open = True
         self.all_frames = []
         self.logger = LoggerFactory("Mocap", level=log_level).get_logger()
@@ -43,6 +44,7 @@ class MocapWrapper(threading.Thread):
     def run(self):
         mc = motioncapture.connect(mocap_system_type, {'hostname': host_name})
         i = 0
+        last_time = time.time()
         while self._stay_open:
             mc.waitForNextFrame()
             for name, obj in mc.rigidBodies.items():
@@ -57,4 +59,8 @@ class MocapWrapper(threading.Thread):
                         "time": now * 1000
                     })
                     i += 1
+            current_time = time.time()
+            if (current_time - last_time) > 1:
+                current_time_us = int(current_time * 1.0e6)
+                self.set_origin(current_time_us)
 

@@ -19,6 +19,10 @@ angular_vel_cov = 0.01
 
 MIN_CELL_VOLT = 3.7
 
+lat = -35.363261
+lon = 149.165230
+alt = 584.0
+
 # Position covariance (6x6 matrix, but we send diagonal elements)
 pose_covariance = [
     0.0001, 0, 0, 0, 0, 0,  # x - good estimate
@@ -1014,6 +1018,44 @@ class Controller:
             velocity_covariance  # velocity covariance
         )
 
+    def get_gps_time(tnow):
+        '''return gps_week and gps_week_ms for current unix time in seconds'''
+        leapseconds = 18
+        SEC_PER_WEEK = 7 * 86400
+        UNIX_TO_GPS_EPOCH = 315964800
+
+        epoch = UNIX_TO_GPS_EPOCH - leapseconds
+        epoch_seconds = int(tnow - epoch)
+        week = int(epoch_seconds) // SEC_PER_WEEK
+        t_ms = int(tnow * 1000) % 1000
+        week_ms = (epoch_seconds % SEC_PER_WEEK) * 1000 + ((t_ms//200) * 200)
+        return week, week_ms
+
+    def send_vision_odometry_through_GPS(self, x, y, z, vx, vy, vz, yaw, timestamp=None):
+        gps_nsats = 16
+
+        if timestamp is None:
+            timestamp = int(time.time() * 1.0e6);
+        gps_lat, gps_lon = mavutil.gps_offset(lat, lon, y, x)
+        gps_alt = alt - z
+        gps_week, gps_week_ms = self.get_gps_time(time.time())
+        if gps_nsats >= 6:
+            fix_type = 3
+        else:
+            fix_type = 1
+        yaw_cd = int(mavextra.wrap_360(math.degrees(yaw)) * 100)
+        if yaw_cd == 0:
+            # the yaw extension to GPS_INPUT uses 0 as no yaw support
+            yaw_cd = 36000
+        self.master.mav.gps_input_send(time_us, 0, 0, gps_week_ms, gps_week, fix_type,
+                               int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
+                               1.0, 1.0,
+                               vx, vy, vz,
+                               0.2, 1.0, 1.0,
+                               gps_nsats,
+                               yaw_cd)
+
+
     def send_distance_sensor(self, distance_cm):
         self.master.mav.distance_sensor_send(
             time_boot_ms=int(time.time() * 1000) % (2 ** 32),
@@ -1061,7 +1103,7 @@ class Controller:
 
             time.sleep(1 / args.fps)
 
-    def send_vicon_position(self, x, y, z, timestamp):
+    def send_vicon_position(self, x, y, z, obj_orientation, timestamp):
         # st = time.time()
         # vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
         # # Positive z is down, negative z is up.
@@ -1076,7 +1118,13 @@ class Controller:
         vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
         # t1 = time.time()
         # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
-        self.send_vision_odometry(y, x, -z, vy, vx, -vz)
+        #self.send_vision_odometry(y, x, -z, vy, vx, -vz)
+
+        # Convert quaternions into euler angles
+        euler_angle = obj_orientation.euler
+        # Grab Yaw from Object_orientation quaternions into yaw in radians
+        yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
+        self.send_vision_odometry_through_GPS(y, x, -z, vx, vy, -vz, yaw)
         # t2 = time.time()
         self.send_distance_sensor(z * 10)
         # t3 = time.time()
@@ -1286,9 +1334,6 @@ if __name__ == "__main__":
 
     if args.localize:
         localize_thread = Thread(target=c.run_camera_localization)
-        lat = 12345
-        lon = 12345
-        alt = 0
         c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
         c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
         c.running_position_estimation = True
@@ -1313,15 +1358,14 @@ if __name__ == "__main__":
         localize_thread.start()
 
     if args.vicon:
-        lat = 12345
-        lon = 12345
-        alt = 0
-        c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
-        c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+        #c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
+        #c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
 
         from mocap import MocapWrapper
         mocap_wrapper = MocapWrapper(args.rigid_body_name)
-        mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[4])
+        mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+        mocap_wrapper.set_origin = lambda time: (c.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.set_gps_global_origin_send(1, lat, lon, alt, time[0]))
+        
         # from vicon import ViconWrapper
 
         # vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
