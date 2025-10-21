@@ -1044,10 +1044,11 @@ class Controller:
             fix_type = 3
         else:
             fix_type = 1
-        yaw_cd = int(mavextra.wrap_360(math.degrees(yaw)) * 100)
-        if yaw_cd == 0:
-            # the yaw extension to GPS_INPUT uses 0 as no yaw support
-            yaw_cd = 36000
+        # yaw_cd = int(mavextra.wrap_360(math.degrees(yaw)) * 100)
+        # if yaw_cd == 0:
+        #     # the yaw extension to GPS_INPUT uses 0 as no yaw support
+        #     yaw_cd = 36000
+        yaw_cd = None
         self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
                                int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
                                1.0, 1.0,
@@ -1122,9 +1123,10 @@ class Controller:
         #self.send_vision_odometry(y, x, -z, vy, vx, -vz)
 
         # Convert quaternions into euler angles
-        euler_angle = obj_orientation.euler
+        # euler_angle = obj_orientation.euler
         # Grab Yaw from Object_orientation quaternions into yaw in radians
-        yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
+        # yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
+        yaw = None
         self.send_vision_odometry_through_GPS(y, x, -z, vx, vy, -vz, yaw)
         # t2 = time.time()
         # self.send_distance_sensor(z * 10)
