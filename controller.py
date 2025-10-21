@@ -66,6 +66,24 @@ def euler_to_quaternion(roll, pitch, yaw):
 
     return [w, x, y, z]
 
+def quaternion_to_euler(x, y, z , w):
+    # roll (x-axis rotation)
+    sinr_cosp = 2 * (w * x + y * z)
+    cosr_cosp = 1 - 2 * (x * x + y * y)
+    roll = math.atan2(sinr_cosp, cosr_cosp)
+
+    # pitch (y-axis rotation)
+    sinp = math.sqrt(1 + 2 * (w * y - x * z))
+    cosp = math.sqrt(1 - 2 * (w * y - x * z))
+    pitch = 2 * math.atan2(sinp, cosp) - math.pi / 2
+
+    # yaw (z-axis rotation)
+    siny_cosp = 2 * (w * z + x * y)
+    cosy_cosp = 1 - 2 * (y * y + z * z)
+    yaw = math.atan2(siny_cosp, cosy_cosp)
+
+    return [roll, pitch, yaw]
+
 
 # Class for formatting the Mission Item.
 class MissionItem:
@@ -1032,6 +1050,13 @@ class Controller:
         week_ms = (epoch_seconds % SEC_PER_WEEK) * 1000 + ((t_ms//200) * 200)
         return week, week_ms
 
+    def gps_offset(lat, lon, east, north):
+        '''return new lat/lon after moving east/north
+        by the given number of meters'''
+        bearing = degrees(atan2(east, north))
+        distance = sqrt(east**2 + north**2)
+        return gps_newpos(lat, lon, bearing, distance)
+
     def send_vision_odometry_through_GPS(self, x, y, z, vx, vy, vz, yaw, timestamp=None):
         gps_nsats = 16
 
@@ -1123,7 +1148,7 @@ class Controller:
         #self.send_vision_odometry(y, x, -z, vy, vx, -vz)
 
         # Convert quaternions into euler angles
-        # euler_angle = obj_orientation.euler
+        # euler_angle = quaternion_to_euler(obj_orientation.x, obj_orientation.y, obj_orientation.z, obj_orientation.w)
         # Grab Yaw from Object_orientation quaternions into yaw in radians
         # yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
         yaw = None
