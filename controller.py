@@ -1148,10 +1148,10 @@ class Controller:
         #self.send_vision_odometry(y, x, -z, vy, vx, -vz)
 
         # Convert quaternions into euler angles
-        # euler_angle = quaternion_to_euler(obj_orientation.x, obj_orientation.y, obj_orientation.z, obj_orientation.w)
+        euler_angle = quaternion_to_euler(obj_orientation.x, obj_orientation.y, obj_orientation.z, obj_orientation.w)
         # Grab Yaw from Object_orientation quaternions into yaw in radians
-        # yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
-        yaw = None
+        yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
+        #yaw = None
         self.send_vision_odometry_through_GPS(y, x, -z, vx, vy, -vz, yaw)
         # t2 = time.time()
         # self.send_distance_sensor(z * 10)
@@ -1389,10 +1389,16 @@ if __name__ == "__main__":
         #c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
         #c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
 
-        from mocap import MocapWrapper
-        mocap_wrapper = MocapWrapper(args.rigid_body_name)
-        mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-        mocap_wrapper.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, lat, lon, alt, t_usec))
+        if args.sim:
+            from fakeVicon import fakeVicon
+            fake_vicon = fakeVicon()
+            fake_vicon.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+            fake_vicon.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, lat, lon, alt, t_usec))
+        else:
+            from mocap import MocapWrapper
+            mocap_wrapper = MocapWrapper(args.rigid_body_name)
+            mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+            mocap_wrapper.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, lat, lon, alt, t_usec))
         
         # from vicon import ViconWrapper
 
