@@ -1095,7 +1095,7 @@ class Controller:
         if timestamp is None:
             timestamp = int(time.time() * 1.0e6)
         gps_lat, gps_lon = self.gps_offset(lat, lon, y, x)
-        gps_alt = alt - z
+        gps_alt = alt + z
         gps_week, gps_week_ms = self.get_gps_time(time.time())
         if gps_nsats >= 6:
             fix_type = 3
@@ -1106,6 +1106,8 @@ class Controller:
             # the yaw extension to GPS_INPUT uses 0 as no yaw support
             yaw_cd = 36000
         #yaw_cd = None
+
+        self.logger.info(f"Position X: {x}, Y: {y}, Z: {z}")
         self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
                                int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
                                1.0, 1.0,
@@ -1184,7 +1186,7 @@ class Controller:
         # Grab Yaw from Object_orientation quaternions into yaw in radians
         yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
         #yaw = None
-        self.send_vision_odometry_through_GPS(y, x, -z, vx, vy, -vz, yaw)
+        self.send_vision_odometry_through_GPS(x, y, z, vx, vy, vz, yaw)
         # t2 = time.time()
         # self.send_distance_sensor(z * 10)
         # t3 = time.time()
