@@ -1062,7 +1062,7 @@ class Controller:
 
         if timestamp is None:
             timestamp = int(time.time() * 1.0e6)
-        gps_lat, gps_lon = mavutil.gps_offset(lat, lon, y, x)
+        gps_lat, gps_lon = self.gps_offset(lat, lon, y, x)
         gps_alt = alt - z
         gps_week, gps_week_ms = self.get_gps_time(time.time())
         if gps_nsats >= 6:
