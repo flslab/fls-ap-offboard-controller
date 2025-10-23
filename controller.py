@@ -1053,8 +1053,8 @@ class Controller:
     def gps_offset(self, lat, lon, east, north):
         '''return new lat/lon after moving east/north
         by the given number of meters'''
-        bearing = degrees(atan2(east, north))
-        distance = sqrt(east**2 + north**2)
+        bearing = math.degrees(atan2(east, north))
+        distance = math.sqrt(east**2 + north**2)
         return gps_newpos(lat, lon, bearing, distance)
 
     def send_vision_odometry_through_GPS(self, x, y, z, vx, vy, vz, yaw, timestamp=None):
