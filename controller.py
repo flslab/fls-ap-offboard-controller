@@ -1294,6 +1294,7 @@ class Controller:
                 self.logger.info("EKF is healthy and position estimate is OK.")
                 return True
             else:
+                self.logger.debug(f"EKF Attitude status: {status['attitude']}, Velocity_horiz: {status['velocity_horiz']}, pos_horiz_abs: {status['pos_horiz_abs']}, pos_horiz_rel: {status['pos_horiz_rel']}")
                 self.logger.warning("EKF is not ready for GUIDED takeoff.")
                 return False
 
