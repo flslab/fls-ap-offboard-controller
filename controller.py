@@ -1106,8 +1106,8 @@ class Controller:
             # the yaw extension to GPS_INPUT uses 0 as no yaw support
             yaw_cd = 36000
         #yaw_cd = None
-
-        self.logger.info(f"Position X: {x}, Y: {y}, Z: {z}")
+        
+        self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
         self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
                                int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
                                1.0, 1.0,
@@ -1163,7 +1163,7 @@ class Controller:
                 # print("Invalid data received")
 
             time.sleep(1 / args.fps)
-            
+
     def send_vicon_position(self, x, y, z, obj_orientation, timestamp):
         # st = time.time()
         # vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
