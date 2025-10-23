@@ -1163,7 +1163,7 @@ class Controller:
                 # print("Invalid data received")
 
             time.sleep(1 / args.fps)
-
+            
     def send_vicon_position(self, x, y, z, obj_orientation, timestamp):
         # st = time.time()
         # vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
