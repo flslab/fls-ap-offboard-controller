@@ -1053,7 +1053,7 @@ class Controller:
     def gps_offset(self, lat, lon, east, north):
         '''return new lat/lon after moving east/north
         by the given number of meters'''
-        bearing = math.degrees(atan2(east, north))
+        bearing = math.degrees(math.atan2(east, north))
         distance = math.sqrt(east**2 + north**2)
         return gps_newpos(lat, lon, bearing, distance)
 
