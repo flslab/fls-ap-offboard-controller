@@ -1110,6 +1110,7 @@ class Controller:
         #self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
         self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
         self.logger.debug(f"velx: {vx}, vely: {vy}, velz: {vz}")
+        time.sleep(1)
         self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
                                int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
                                1.0, 1.0,
