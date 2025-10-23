@@ -5,7 +5,7 @@ import time
 import logging
 
 # used to fake a quaternion
-class pos:
+class ObjectOrientation:
     def __init__(self, x, y, z, w):
         self.x = x
         self.y = y
@@ -34,8 +34,8 @@ class fakeVicon(threading.Thread):
 
             if (current_time - last_time) > 0.01:
                 now = time.time()
-                pos(1,1,1,1)
-                self.send_pos(1,1,1, pos, now)
+                posObj = ObjectOrientation(1,1,1,1)
+                self.send_pos([1,1,1, posObj, now])
 
             if (current_time - last_time) > 1:
                 current_time_us = int(current_time * 1.0e6)

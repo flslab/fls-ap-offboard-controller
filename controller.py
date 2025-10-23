@@ -1055,7 +1055,39 @@ class Controller:
         by the given number of meters'''
         bearing = math.degrees(math.atan2(east, north))
         distance = math.sqrt(east**2 + north**2)
-        return gps_newpos(lat, lon, bearing, distance)
+        return self.gps_newpos(lat, lon, bearing, distance)
+
+    def constrain(self, v, minv, maxv):
+        if v < minv:
+            v = minv
+        if v > maxv:
+            v = maxv
+        return v
+
+    def gps_newpos(self, lat, lon, bearing, distance):
+        '''extrapolate latitude/longitude given a heading and distance
+        along rhumb line thanks to http://www.movable-type.co.uk/scripts/latlong.html
+        '''
+        lat1 = self.constrain(math.radians(lat), -(math.pi)/2+1.0e-15, (math.pi)/2-1.0e-15)
+        lon1 = math.radians(lon)
+        tc = math.radians(-bearing)
+        radius_of_earth = 6378100.0
+        d = distance/radius_of_earth
+
+        lat = lat1 + d * math.cos(tc)
+        lat = self.constrain(lat, -(math.pi)/2 + 1.0e-15, (math.pi)/2 - 1.0e-15)
+        if abs(lat-lat1) < 1.0e-15:
+            q = math.cos(lat1)
+        else:
+            try:
+                dphi = math.log(math.tan(lat/2+(math.pi)/4)/math.tan(lat1/2+(math.pi)/4))
+            except Exception:
+                print(math.degrees(lat),math.degrees(lat1))
+                raise
+            q = (lat-lat1)/dphi
+        dlon = -d*(math.sin(tc))/q
+        lon = math.fmod(lon1+dlon+(math.pi),2*(math.pi))-math.pi
+        return (math.degrees(lat), math.degrees(lon))
 
     def send_vision_odometry_through_GPS(self, x, y, z, vx, vy, vz, yaw, timestamp=None):
         gps_nsats = 16
@@ -1069,11 +1101,11 @@ class Controller:
             fix_type = 3
         else:
             fix_type = 1
-        # yaw_cd = int(mavextra.wrap_360(math.degrees(yaw)) * 100)
-        # if yaw_cd == 0:
-        #     # the yaw extension to GPS_INPUT uses 0 as no yaw support
-        #     yaw_cd = 36000
-        yaw_cd = None
+        yaw_cd = 0 #int(mavextra.wrap_360(math.degrees(yaw)) * 100)
+        if yaw_cd == 0:
+            # the yaw extension to GPS_INPUT uses 0 as no yaw support
+            yaw_cd = 36000
+        #yaw_cd = None
         self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
                                int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
                                1.0, 1.0,
@@ -1393,12 +1425,12 @@ if __name__ == "__main__":
             from fakeVicon import fakeVicon
             fake_vicon = fakeVicon()
             fake_vicon.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-            fake_vicon.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, lat, lon, alt, t_usec))
+            fake_vicon.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, int(lat*1.0e7), int(lon*1.0e7), int(alt*1.0e3), int(t_usec)))
         else:
             from mocap import MocapWrapper
             mocap_wrapper = MocapWrapper(args.rigid_body_name)
             mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-            mocap_wrapper.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, lat, lon, alt, t_usec))
+            mocap_wrapper.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, int(lat*1.0e7), int(lon*1.0e7), int(alt*1.0e3), int(t_usec)))
         
         # from vicon import ViconWrapper
 
