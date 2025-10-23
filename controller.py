@@ -1050,7 +1050,7 @@ class Controller:
         week_ms = (epoch_seconds % SEC_PER_WEEK) * 1000 + ((t_ms//200) * 200)
         return week, week_ms
 
-    def gps_offset(lat, lon, east, north):
+    def gps_offset(self, lat, lon, east, north):
         '''return new lat/lon after moving east/north
         by the given number of meters'''
         bearing = degrees(atan2(east, north))
