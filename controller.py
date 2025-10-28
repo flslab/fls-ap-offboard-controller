@@ -1115,8 +1115,7 @@ class Controller:
                                1.0, 1.0,
                                vx, vy, vz,
                                0.2, 1.0, 1.0,
-                               gps_nsats,
-                               yaw_cd)
+                               gps_nsats)
 
 
     def send_distance_sensor(self, distance_cm):
