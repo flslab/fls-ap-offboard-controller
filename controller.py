@@ -1101,11 +1101,11 @@ class Controller:
             fix_type = 3
         else:
             fix_type = 1
-        yaw_cd = 0 #int(mavextra.wrap_360(math.degrees(yaw)) * 100)
+        # Convert the yaw from radians into centidegrees
+        yaw_cd = int(mavextra.wrap_360(math.degrees(yaw)) * 100)
         if yaw_cd == 0:
             # the yaw extension to GPS_INPUT uses 0 as no yaw support
             yaw_cd = 36000
-        #yaw_cd = None
     
         #self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
         #self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
@@ -1187,8 +1187,9 @@ class Controller:
 
         # Convert quaternions into euler angles
         euler_angle = quaternion_to_euler(obj_orientation.x, obj_orientation.y, obj_orientation.z, obj_orientation.w)
-        # Grab Yaw from Object_orientation quaternions into yaw in radians
-        yaw = int(mavextra.wrap_360(math.degrees(euler_angle[2])) * 100)
+        # Yaw in radians from quaternion
+        yaw = euler_angle[2]
+        self.logger.debug(f"Yaw in radians: {yaw}")
         #yaw = None
         self.send_vision_odometry_through_GPS(x, y, z, vx, vy, vz, yaw)
         # t2 = time.time()
