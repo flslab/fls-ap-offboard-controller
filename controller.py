@@ -1308,13 +1308,17 @@ class Controller:
             if msg:
                 self.logger.info(f"STATUSTEXT [{msg.severity}]: {msg.text}")
 
-    def check_preflight(self):
+    def check_preflight(self, retry=10):
         self.logger.info("Fetching current EKF sources...")
         posxy_src = self.wait_param("EK3_SRC1_POSXY")
         velxy_src = self.wait_param("EK3_SRC1_VELXY")
         self.logger.info(f"EK3_SRC1_POSXY = {posxy_src}, EK3_SRC1_VELXY = {velxy_src}")
 
+        i = 0
         while not self.check_ekf_status():
+            i += 1
+            if i > retry:
+                break
             self.logger.info("waiting for EK3 to converge...")
             time.sleep(1)
 
