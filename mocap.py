@@ -26,6 +26,7 @@ class MocapWrapper(threading.Thread):
         self.set_origin = None
         self._stay_open = True
         self.all_frames = []
+        self.position_log = []
         self.logger = LoggerFactory("Mocap", level=log_level).get_logger()
 
         self.start()
@@ -56,6 +57,7 @@ class MocapWrapper(threading.Thread):
                     self.all_frames.append({
                         "frame_id": i,
                         "tvec": [float(pos[0]), float(pos[1]), float(pos[2])],
+                        "qvec": [obj.rotation.x, obj.rotation.y, obj.rotation.z, obj.rotation.w],
                         "time": now * 1000
                     })
                     i += 1
