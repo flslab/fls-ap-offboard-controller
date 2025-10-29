@@ -23,7 +23,7 @@ MIN_CELL_VOLT = 3.7
 
 lat = -35.363261
 lon = 149.165230
-alt = 0
+alt = 584.0
 
 # Position covariance (6x6 matrix, but we send diagonal elements)
 pose_covariance = [
