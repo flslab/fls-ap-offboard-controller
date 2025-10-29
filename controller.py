@@ -1511,12 +1511,11 @@ if __name__ == "__main__":
             led.start()
 
         if args.idle:
+            c.arm_with_retry()
             time.sleep(args.duration)
         else:
-            if not c.arm_with_retry():
-                pass
-                # exit()
-            c.start_flight()
+            if c.arm_with_retry():
+                c.start_flight()
     except KeyboardInterrupt:
         logger.info("Stopped by user")
 
@@ -1537,6 +1536,6 @@ if __name__ == "__main__":
     if args.fake_vicon:
         fv.close()
 
-    if mavrouter_proc:
+    if mavrouter_proc is not None:
         mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
         mavrouter_proc.wait(timeout=5)
