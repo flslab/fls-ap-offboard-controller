@@ -1388,7 +1388,7 @@ if __name__ == "__main__":
 
     log_level = logging.DEBUG if args.debug or args.status else logging.INFO
 
-    if args.router:
+    if args.router and not args.reboot:
         mavrouter_params = [
             "mavlink-routerd",
             "-e", "192.168.1.230:14550",
