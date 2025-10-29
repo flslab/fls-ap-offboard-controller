@@ -67,7 +67,8 @@ def euler_to_quaternion(roll, pitch, yaw):
 
     return [w, x, y, z]
 
-def quaternion_to_euler(x, y, z , w):
+
+def quaternion_to_euler(x, y, z, w):
     # roll (x-axis rotation)
     sinr_cosp = 2 * (w * x + y * z)
     cosr_cosp = 1 - 2 * (x * x + y * y)
@@ -1052,14 +1053,14 @@ class Controller:
         epoch_seconds = int(tnow - epoch)
         week = int(epoch_seconds) // SEC_PER_WEEK
         t_ms = int(tnow * 1000) % 1000
-        week_ms = (epoch_seconds % SEC_PER_WEEK) * 1000 + ((t_ms//200) * 200)
+        week_ms = (epoch_seconds % SEC_PER_WEEK) * 1000 + ((t_ms // 200) * 200)
         return week, week_ms
 
     def gps_offset(self, lat, lon, east, north):
         '''return new lat/lon after moving east/north
         by the given number of meters'''
         bearing = math.degrees(math.atan2(east, north))
-        distance = math.sqrt(east**2 + north**2)
+        distance = math.sqrt(east ** 2 + north ** 2)
         return self.gps_newpos(lat, lon, bearing, distance)
 
     def constrain(self, v, minv, maxv):
@@ -1073,25 +1074,25 @@ class Controller:
         '''extrapolate latitude/longitude given a heading and distance
         along rhumb line thanks to http://www.movable-type.co.uk/scripts/latlong.html
         '''
-        lat1 = self.constrain(math.radians(lat), -(math.pi)/2+1.0e-15, (math.pi)/2-1.0e-15)
+        lat1 = self.constrain(math.radians(lat), -(math.pi) / 2 + 1.0e-15, (math.pi) / 2 - 1.0e-15)
         lon1 = math.radians(lon)
         tc = math.radians(-bearing)
         radius_of_earth = 6378100.0
-        d = distance/radius_of_earth
+        d = distance / radius_of_earth
 
         lat = lat1 + d * math.cos(tc)
-        lat = self.constrain(lat, -(math.pi)/2 + 1.0e-15, (math.pi)/2 - 1.0e-15)
-        if abs(lat-lat1) < 1.0e-15:
+        lat = self.constrain(lat, -(math.pi) / 2 + 1.0e-15, (math.pi) / 2 - 1.0e-15)
+        if abs(lat - lat1) < 1.0e-15:
             q = math.cos(lat1)
         else:
             try:
-                dphi = math.log(math.tan(lat/2+(math.pi)/4)/math.tan(lat1/2+(math.pi)/4))
+                dphi = math.log(math.tan(lat / 2 + (math.pi) / 4) / math.tan(lat1 / 2 + (math.pi) / 4))
             except Exception:
-                print(math.degrees(lat),math.degrees(lat1))
+                print(math.degrees(lat), math.degrees(lat1))
                 raise
-            q = (lat-lat1)/dphi
-        dlon = -d*(math.sin(tc))/q
-        lon = math.fmod(lon1+dlon+(math.pi),2*(math.pi))-math.pi
+            q = (lat - lat1) / dphi
+        dlon = -d * (math.sin(tc)) / q
+        lon = math.fmod(lon1 + dlon + (math.pi), 2 * (math.pi)) - math.pi
         return (math.degrees(lat), math.degrees(lon))
 
     def send_vision_odometry_through_GPS(self, x, y, z, vx, vy, vz, yaw, timestamp=None):
@@ -1111,17 +1112,16 @@ class Controller:
         if yaw_cd == 0:
             # the yaw extension to GPS_INPUT uses 0 as no yaw support
             yaw_cd = 36000
-    
-        #self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
-        #self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
-        #self.logger.debug(f"velx: {vx}, vely: {vy}, velz: {vz}")
-        self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
-                               int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
-                               1.0, 1.0,
-                               vx, vy, vz,
-                               0.2, 1.0, 1.0,
-                               gps_nsats)
 
+        # self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
+        # self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
+        # self.logger.debug(f"velx: {vx}, vely: {vy}, velz: {vz}")
+        self.master.mav.gps_input_send(timestamp, 0, 0, gps_week_ms, gps_week, fix_type,
+                                       int(gps_lat * 1.0e7), int(gps_lon * 1.0e7), gps_alt,
+                                       1.0, 1.0,
+                                       vx, vy, vz,
+                                       0.2, 1.0, 1.0,
+                                       gps_nsats)
 
     def send_distance_sensor(self, distance_cm):
         self.master.mav.distance_sensor_send(
@@ -1185,7 +1185,7 @@ class Controller:
         vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=timestamp)
         # t1 = time.time()
         # self.send_position_estimate(y / 1000, x / 1000, -z / 1000)
-        #self.send_vision_odometry(y, x, -z, vy, vx, -vz)
+        # self.send_vision_odometry(y, x, -z, vy, vx, -vz)
 
         # Need to convert x,y,z into milimeters
 
@@ -1194,7 +1194,7 @@ class Controller:
         # Yaw in radians from quaternion
         yaw = euler_angle[2]
         self.logger.debug(f"Yaw in radians: {yaw}")
-        #yaw = None
+        # yaw = None
         self.send_vision_odometry_through_GPS(x, y, z, vx, vy, vz, yaw)
         # t2 = time.time()
         # self.send_distance_sensor(z * 10)
@@ -1444,27 +1444,34 @@ if __name__ == "__main__":
         time.sleep(2)
         localize_thread.start()
 
-    if args.vicon:
-        #c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
-        #c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+    if args.fake_vicon:
+        from fake_vicon import FakeVicon
 
-        if args.sim:
-            from fakeVicon import fakeVicon
-            fake_vicon = fakeVicon()
-            fake_vicon.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-            fake_vicon.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, int(lat*1.0e7), int(lon*1.0e7), int(alt*1.0e3), int(t_usec)))
-        else:
-            from mocap import MocapWrapper
-            mocap_wrapper = MocapWrapper(args.rigid_body_name)
-            mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-            mocap_wrapper.set_origin = lambda t_usec: (c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0), c.master.mav.set_gps_global_origin_send(1, int(lat*1.0e7), int(lon*1.0e7), int(alt*1.0e3), int(t_usec)))
-        
+        fv = FakeVicon()
+        fv.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+        fv.set_origin = lambda t_usec: (
+            c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
+            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3),
+                                                    int(t_usec)))
+
+    if args.vicon:
+        # c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
+        # c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+        from mocap import MocapWrapper
+
+        mocap_wrapper = MocapWrapper(args.rigid_body_name)
+        mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+        mocap_wrapper.set_origin = lambda t_usec: (
+        c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
+        c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(t_usec)))
+
         # from vicon import ViconWrapper
 
         # vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
         # vicon_thread.start()
     elif args.save_vicon:
         from mocap import MocapWrapper
+
         mocap_wrapper = MocapWrapper(args.rigid_body_name)
         # from vicon import ViconWrapper
 
