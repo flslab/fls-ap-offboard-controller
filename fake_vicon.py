@@ -23,8 +23,6 @@ class FakeVicon(threading.Thread):
         self.set_origin = None
         self._stay_open = True
 
-        self.start()
-
     def close(self):
         self._stay_open = False
         self.join()

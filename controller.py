@@ -1468,6 +1468,7 @@ if __name__ == "__main__":
                 c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
                 c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3),
                                                         int(t_usec)))
+            fv.start()
 
         if args.vicon:
             # c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
