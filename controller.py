@@ -1414,7 +1414,7 @@ if __name__ == "__main__":
 
         if args.reboot:
             c.reboot()
-            if mavrouter_proc:
+            if mavrouter_proc is not None:
                 mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
                 mavrouter_proc.wait(timeout=5)
             exit()
