@@ -44,6 +44,12 @@ velocity_covariance = [
     100.0  # vyaw - high uncertainty (no data)
 ]
 
+# GPS quality parameters
+SAMPLE_HDOP = 0.8  # Horizontal dilution of precision (0.5-1.0 = excellent)
+SAMPLE_VDOP = 1.0  # Vertical dilution of precision (0.5-1.5 = good)
+SAMPLE_HACC = 0.5  # Horizontal accuracy in meters (< 1.0 = good)
+SAMPLE_VACC = 0.8  # Vertical accuracy in meters (< 1.5 = good)
+
 
 def truncate(f, n):
     return int(f * 10 ** n) / 10 ** n
@@ -1114,7 +1120,11 @@ class Controller:
             # the yaw extension to GPS_INPUT uses 0 as no yaw support
             yaw_cd = 36000
 
-        ignore_flags = 0
+        ignore_flags = (
+                mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VEL_HORIZ |
+                mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VEL_VERT |
+                mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_SPEED_ACCURACY
+        )
 
         self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
         self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
@@ -1129,12 +1139,12 @@ class Controller:
             int(gps_lat * 1.0e7),
             int(gps_lon * 1.0e7),
             gps_alt,
-            1.0,
-            1.0,
+            SAMPLE_HDOP,
+            SAMPLE_VDOP,
             vx, vy, vz,
-            0.01,
-            0.001,
-            1.001,
+            0.0,
+            SAMPLE_HACC,
+            SAMPLE_VACC,
             gps_nsats,
             0
         )
@@ -1461,8 +1471,18 @@ if __name__ == "__main__":
             localize_thread.start()
 
         if args.fake_vicon:
-            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3))
+            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(time.time() * 1e6))
             c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+
+            # Verify by checking for GPS_GLOBAL_ORIGIN message
+            msg = c.master.recv_match(type='GPS_GLOBAL_ORIGIN', blocking=True, timeout=3)
+            if msg:
+                origin_lat = msg.latitude / 1e7
+                origin_lon = msg.longitude / 1e7
+                origin_alt = msg.altitude / 1000.0
+                print(f"✓ EKF origin confirmed: {origin_lat:.6f}, {origin_lon:.6f}, {origin_alt:.1f}m")
+            else:
+                print("Could not confirm EKF origin (may still be set)")
 
             from fake_vicon import FakeVicon
 
@@ -1475,7 +1495,7 @@ if __name__ == "__main__":
             fv.start()
 
         if args.vicon:
-            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3))
+            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(time.time() * 1e6))
             c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
 
             from mocap import MocapWrapper
