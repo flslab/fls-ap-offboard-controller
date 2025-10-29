@@ -1461,6 +1461,9 @@ if __name__ == "__main__":
             localize_thread.start()
 
         if args.fake_vicon:
+            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3))
+            c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+
             from fake_vicon import FakeVicon
 
             fv = FakeVicon(rate=args.vicon_rate)
@@ -1472,15 +1475,16 @@ if __name__ == "__main__":
             fv.start()
 
         if args.vicon:
-            # c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
-            # c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3))
+            c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+
             from mocap import MocapWrapper
 
             mocap_wrapper = MocapWrapper(args.rigid_body_name, rate=args.vicon_rate)
             mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-            mocap_wrapper.set_origin = lambda t_usec: (
-            c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
-            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(t_usec)))
+            # mocap_wrapper.set_origin = lambda t_usec: (
+            # c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
+            # c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(t_usec)))
 
             # from vicon import ViconWrapper
 
