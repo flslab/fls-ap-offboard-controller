@@ -1515,24 +1515,24 @@ if __name__ == "__main__":
             c.start_flight()
     except KeyboardInterrupt:
         logger.info("Stopped by user")
-    finally:
-        if c:
-            c.stop()
 
-        if args.led:
-            led.stop()
+    if c:
+        c.stop()
 
-        if args.localize:
-            c.running_position_estimation = False
-            localize_thread.join()
+    if args.led:
+        led.stop()
 
-        if args.vicon or args.save_vicon:
-            mocap_wrapper.close()
-            # vicon_thread.stop()
+    if args.localize:
+        c.running_position_estimation = False
+        localize_thread.join()
 
-        if args.fake_vicon:
-            fv.close()
+    if args.vicon or args.save_vicon:
+        mocap_wrapper.close()
+        # vicon_thread.stop()
 
-        if mavrouter_proc:
-            mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
-            mavrouter_proc.wait(timeout=5)
+    if args.fake_vicon:
+        fv.close()
+
+    if mavrouter_proc:
+        mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
+        mavrouter_proc.wait(timeout=5)
