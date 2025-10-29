@@ -1392,6 +1392,7 @@ if __name__ == "__main__":
     logger = LoggerFactory("Controller", level=log_level).get_logger()
 
     try:
+        mavrouter_proc = None
         if args.router:
             mavrouter_params = [
                 "mavlink-routerd",
