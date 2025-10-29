@@ -880,7 +880,7 @@ class Controller:
                 for i in range(int(self.flight_duration * 10)):
                     if self.failsafe:
                         return
-                    self.send_position_target(point[0], point[1], point[2])
+                    self.send_position_target(point[0], point[1], point[2], yaw=self.initial_yaw)
                     time.sleep(1 / 10)
 
     def test_trajectory_2(self):
