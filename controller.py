@@ -131,6 +131,7 @@ class Controller:
         self.initial_yaw = 0
         self.mission_items = []
         self.velocity_estimator = VelocityEstimator(filter_alpha=0.1)
+        self.flying = False
 
     def connect(self):
         if self.sim:
@@ -1244,6 +1245,7 @@ class Controller:
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
         time.sleep(3)
+        self.flying = True
         c.takeoff()
         time.sleep(2)
 
@@ -1270,6 +1272,7 @@ class Controller:
         flight_thread.start()
 
         flight_thread.join()
+        self.flying = False
         self.running_battery_watcher = False
         battery_thread.join()
 
@@ -1343,7 +1346,8 @@ class Controller:
             time.sleep(1)
 
     def stop(self):
-        self.land()
+        if self.flying:
+            self.land()
 
 
 if __name__ == "__main__":
