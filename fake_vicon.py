@@ -15,7 +15,7 @@ class ObjectOrientation:
 
 
 # send fake vicon data for simulation to see if the drone arms
-class Fakevicon(threading.Thread):
+class FakeVicon(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
