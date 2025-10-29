@@ -1388,7 +1388,7 @@ if __name__ == "__main__":
 
     log_level = logging.DEBUG if args.debug or args.status else logging.INFO
 
-    if args.router and not args.reboot:
+    if args.router:
         mavrouter_params = [
             "mavlink-routerd",
             "-e", "192.168.1.230:14550",
@@ -1410,6 +1410,9 @@ if __name__ == "__main__":
 
     if args.reboot:
         c.reboot()
+        if mavrouter_proc:
+            mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
+            mavrouter_proc.wait(timeout=5)
         exit()
 
     if args.land:
