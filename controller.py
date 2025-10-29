@@ -1354,6 +1354,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
+    arg_parser.add_argument("--fake-vicon", action="store_true", help="send fake vicon data to the drone, never fly with this option")
     arg_parser.add_argument("--rigid-body-name", type=str, default="fls_ap_y",
                             help="the name of the rigid body that represents the FLS in mocap tracking system, works with --vicon.")
     arg_parser.add_argument("--save-vicon", action="store_true", help="save Vicon tracking data only")
@@ -1371,7 +1372,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--repeat-trajectory", type=int, default=3, help="number of trajectory repetitions")
     arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
     arg_parser.add_argument("--idle", action="store_true", help="sit idle")
-    arg_parser.add_argument("--router", action="store_true", help="sit idle")
+    arg_parser.add_argument("--router", action="store_true", help="start mavling-routerd to connect both this script and the qgroundcontrol to the drone")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
     arg_parser.add_argument("--autotune", action="store_true", help="perform PID autotune")
