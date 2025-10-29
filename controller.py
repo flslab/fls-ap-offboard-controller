@@ -106,7 +106,7 @@ class MissionItem:
 
 
 class Controller:
-    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
+    def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, logger,
                  sim=False,
                  router=False,
                  device="/dev/ttyAMA0",
@@ -114,7 +114,7 @@ class Controller:
         self.device = device
         self.baudrate = baudrate
         self.master = None
-        self.logger = LoggerFactory("Controller", level=log_level).get_logger()
+        self.logger = logger
         self.is_armed = False
         self.connected = False
         self.flight_duration = flight_duration
@@ -1387,148 +1387,154 @@ if __name__ == "__main__":
     args = arg_parser.parse_args()
 
     log_level = logging.DEBUG if args.debug or args.status else logging.INFO
+    logger = LoggerFactory("Controller", level=log_level).get_logger()
 
-    if args.router:
-        mavrouter_params = [
-            "mavlink-routerd",
-            "-e", "192.168.1.230:14550",
-            "-e", "127.0.0.1:14551",
-            "/dev/ttyAMA0:921600"
-        ]
-        mavrouter_proc = subprocess.Popen(mavrouter_params)
+    try:
+        if args.router:
+            mavrouter_params = [
+                "mavlink-routerd",
+                "-e", "192.168.1.230:14550",
+                "-e", "127.0.0.1:14551",
+                "/dev/ttyAMA0:921600"
+            ]
+            mavrouter_proc = subprocess.Popen(mavrouter_params)
 
-    c = Controller(
-        takeoff_altitude=args.takeoff_altitude,
-        land_altitude=args.land_altitude,
-        sim=args.sim,
-        router=args.router,
-        log_level=log_level,
-        flight_duration=args.duration,
-        voltage_threshold=args.voltage,
-    )
-    c.connect()
+        c = Controller(
+            takeoff_altitude=args.takeoff_altitude,
+            land_altitude=args.land_altitude,
+            sim=args.sim,
+            router=args.router,
+            logger=logger,
+            flight_duration=args.duration,
+            voltage_threshold=args.voltage,
+        )
+        c.connect()
 
-    if args.reboot:
-        c.reboot()
+        if args.reboot:
+            c.reboot()
+            if mavrouter_proc:
+                mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
+                mavrouter_proc.wait(timeout=5)
+            exit()
+
+        if args.land:
+            c.land()
+            time.sleep(10)
+            c.disarm()
+            exit()
+
+        if args.status:
+            c.watch_battery(independent=True)
+            exit()
+
+        if args.test_motors:
+            c.test_motors()
+            exit()
+
+        if args.localize:
+            localize_thread = Thread(target=c.run_camera_localization)
+            c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
+            c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+            c.running_position_estimation = True
+            localization_params = [
+                "/home/fls/fls-marker-localization/build/eye",
+                "-t", str(30 + args.duration),
+                "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
+                "--brightness", "0.5",  # 0.5
+                "--contrast", "2.5",  # 0.75
+                "--exposure", "500",
+                "--fps", str(args.fps),
+            ]
+
+            if args.save_camera:
+                localization_params.extend(["-s", "--save-rate", "10"])
+            if args.stream_camera:
+                localization_params.extend(["--stream", "--stream-rate", "10"])
+
+            c_process = subprocess.Popen(localization_params)
+
+            time.sleep(2)
+            localize_thread.start()
+
+        if args.fake_vicon:
+            from fake_vicon import FakeVicon
+
+            fv = FakeVicon()
+            fv.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+            fv.set_origin = lambda t_usec: (
+                c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
+                c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3),
+                                                        int(t_usec)))
+
+        if args.vicon:
+            # c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
+            # c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+            from mocap import MocapWrapper
+
+            mocap_wrapper = MocapWrapper(args.rigid_body_name)
+            mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
+            mocap_wrapper.set_origin = lambda t_usec: (
+            c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
+            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(t_usec)))
+
+            # from vicon import ViconWrapper
+
+            # vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
+            # vicon_thread.start()
+        elif args.save_vicon:
+            from mocap import MocapWrapper
+
+            mocap_wrapper = MocapWrapper(args.rigid_body_name)
+            # from vicon import ViconWrapper
+
+            # vicon_thread = ViconWrapper(log_level=log_level)
+            # vicon_thread.start()
+
+        c.request_data()
+        c.check_preflight()
+        c.set_initial_yaw()
+        c.set_battery_cells()
+
+        if not c.set_mode('GUIDED'):
+            pass
+            # exit()
+
+        if args.mission:
+            c.send_mission_from_file(args.mission)
+
+        if args.led:
+            from led import MovingDotLED
+
+            led = MovingDotLED(brightness=args.led_brightness)
+            led.start()
+
+        if args.idle:
+            time.sleep(args.duration)
+        else:
+            if not c.arm_with_retry():
+                pass
+                # exit()
+            c.start_flight()
+    except KeyboardInterrupt:
+        logger.info("Stopped by user")
+    finally:
+        if c:
+            c.stop()
+
+        if args.led:
+            led.stop()
+
+        if args.localize:
+            c.running_position_estimation = False
+            localize_thread.join()
+
+        if args.vicon or args.save_vicon:
+            mocap_wrapper.close()
+            # vicon_thread.stop()
+
+        if args.fake_vicon:
+            fv.close()
+
         if mavrouter_proc:
             mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
             mavrouter_proc.wait(timeout=5)
-        exit()
-
-    if args.land:
-        c.land()
-        time.sleep(10)
-        c.disarm()
-        exit()
-
-    if args.status:
-        c.watch_battery(independent=True)
-        exit()
-
-    if args.test_motors:
-        c.test_motors()
-        exit()
-
-    if args.localize:
-        localize_thread = Thread(target=c.run_camera_localization)
-        c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
-        c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
-        c.running_position_estimation = True
-        localization_params = [
-            "/home/fls/fls-marker-localization/build/eye",
-            "-t", str(30 + args.duration),
-            "--config", "/home/fls/fls-marker-localization/build/camera_config.json",
-            "--brightness", "0.5",  # 0.5
-            "--contrast", "2.5",  # 0.75
-            "--exposure", "500",
-            "--fps", str(args.fps),
-        ]
-
-        if args.save_camera:
-            localization_params.extend(["-s", "--save-rate", "10"])
-        if args.stream_camera:
-            localization_params.extend(["--stream", "--stream-rate", "10"])
-
-        c_process = subprocess.Popen(localization_params)
-
-        time.sleep(2)
-        localize_thread.start()
-
-    if args.fake_vicon:
-        from fake_vicon import FakeVicon
-
-        fv = FakeVicon()
-        fv.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-        fv.set_origin = lambda t_usec: (
-            c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
-            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3),
-                                                    int(t_usec)))
-
-    if args.vicon:
-        # c.master.mav.set_gps_global_origin_send(1, lat, lon, alt)
-        # c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
-        from mocap import MocapWrapper
-
-        mocap_wrapper = MocapWrapper(args.rigid_body_name)
-        mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
-        mocap_wrapper.set_origin = lambda t_usec: (
-        c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
-        c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(t_usec)))
-
-        # from vicon import ViconWrapper
-
-        # vicon_thread = ViconWrapper(callback=c.send_vicon_position, log_level=log_level)
-        # vicon_thread.start()
-    elif args.save_vicon:
-        from mocap import MocapWrapper
-
-        mocap_wrapper = MocapWrapper(args.rigid_body_name)
-        # from vicon import ViconWrapper
-
-        # vicon_thread = ViconWrapper(log_level=log_level)
-        # vicon_thread.start()
-
-    c.request_data()
-    c.check_preflight()
-    c.set_initial_yaw()
-    c.set_battery_cells()
-
-    if not c.set_mode('GUIDED'):
-        pass
-        # exit()
-
-    if args.mission:
-        c.send_mission_from_file(args.mission)
-
-    if args.led:
-        from led import MovingDotLED
-
-        led = MovingDotLED(brightness=args.led_brightness)
-        led.start()
-
-    if args.idle:
-        time.sleep(args.duration)
-    else:
-        if not c.arm_with_retry():
-            pass
-            # exit()
-        c.start_flight()
-    c.stop()
-
-    if args.led:
-        led.stop()
-
-    if args.localize:
-        c.running_position_estimation = False
-        localize_thread.join()
-
-    if args.vicon or args.save_vicon:
-        mocap_wrapper.close()
-        # vicon_thread.stop()
-
-    if args.fake_vicon:
-        fv.close()
-
-    if mavrouter_proc:
-        mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
-        mavrouter_proc.wait(timeout=5)
