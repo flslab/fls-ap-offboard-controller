@@ -1362,6 +1362,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
+    arg_parser.add_argument("--vicon-rate", type=float, default="100.0", help="vicon refresh rate in Hz")
     arg_parser.add_argument("--fake-vicon", action="store_true", help="send fake vicon data to the drone, never fly with this option")
     arg_parser.add_argument("--rigid-body-name", type=str, default="fls_ap_y",
                             help="the name of the rigid body that represents the FLS in mocap tracking system, works with --vicon.")
@@ -1462,7 +1463,7 @@ if __name__ == "__main__":
         if args.fake_vicon:
             from fake_vicon import FakeVicon
 
-            fv = FakeVicon()
+            fv = FakeVicon(rate=args.vicon_rate)
             fv.send_pos = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
             fv.set_origin = lambda t_usec: (
                 c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),
@@ -1475,7 +1476,7 @@ if __name__ == "__main__":
             # c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
             from mocap import MocapWrapper
 
-            mocap_wrapper = MocapWrapper(args.rigid_body_name)
+            mocap_wrapper = MocapWrapper(args.rigid_body_name, rate=args.vicon_rate)
             mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[3], frame[4])
             mocap_wrapper.set_origin = lambda t_usec: (
             c.master.mav.heartbeat_send(mavutil.mavlink.MAV_TYPE_GCS, mavutil.mavlink.MAV_AUTOPILOT_GENERIC, 0, 0, 0),

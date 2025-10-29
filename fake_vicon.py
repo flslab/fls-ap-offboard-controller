@@ -16,12 +16,13 @@ class ObjectOrientation:
 
 # send fake vicon data for simulation to see if the drone arms
 class FakeVicon(threading.Thread):
-    def __init__(self):
+    def __init__(self, rate):
         threading.Thread.__init__(self)
 
         self.send_pos = None
         self.set_origin = None
         self._stay_open = True
+        self.rate = rate
 
     def close(self):
         self._stay_open = False
@@ -34,7 +35,7 @@ class FakeVicon(threading.Thread):
 
             qvec = ObjectOrientation(0, 0, 1, 0)
             self.send_pos([0, 0, 0, qvec, current_time])
-            time.sleep(1/10)
+            time.sleep(1/self.rate)
 
             if (current_time - last_time) > 1:
                 current_time_us = int(current_time * 1.0e6)

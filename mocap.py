@@ -18,7 +18,7 @@ mocap_system_type = 'vicon'
 
 
 class MocapWrapper(threading.Thread):
-    def __init__(self, body_name, log_level=logging.INFO):
+    def __init__(self, body_name, rate, log_level=logging.INFO):
         threading.Thread.__init__(self)
 
         self.body_name = body_name
@@ -27,6 +27,7 @@ class MocapWrapper(threading.Thread):
         self._stay_open = True
         self.all_frames = []
         self.position_log = []
+        self.rate = rate
         self.logger = LoggerFactory("Mocap", level=log_level).get_logger()
 
         self.start()
@@ -47,6 +48,7 @@ class MocapWrapper(threading.Thread):
         i = 0
         last_time = time.time()
         while self._stay_open:
+            time.sleep(1/self.rate)
             mc.waitForNextFrame()
             for name, obj in mc.rigidBodies.items():
                 if name == self.body_name:
