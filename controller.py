@@ -1116,8 +1116,8 @@ class Controller:
 
         ignore_flags = 0
 
-        # self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
-        # self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
+        self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
+        self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
         # self.logger.debug(f"velx: {vx}, vely: {vy}, velz: {vz}")
         self.master.mav.gps_input_send(
             timestamp,
@@ -1209,7 +1209,7 @@ class Controller:
         euler_angle = quaternion_to_euler(obj_orientation.x, obj_orientation.y, obj_orientation.z, obj_orientation.w)
         # Yaw in radians from quaternion
         yaw = euler_angle[2]
-        self.logger.debug(f"Yaw in radians: {yaw}")
+        # self.logger.debug(f"Yaw in radians: {yaw}")
         # yaw = None
         self.send_vision_odometry_through_GPS(x, y, z, vx, vy, vz, yaw)
         # t2 = time.time()
