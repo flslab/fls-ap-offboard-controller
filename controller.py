@@ -1520,7 +1520,7 @@ if __name__ == "__main__":
             # vicon_thread.start()
 
         c.request_data()
-        c.check_preflight(retry=30)
+        c.check_preflight(retry=10)
         c.set_initial_yaw()
         c.set_battery_cells()
 
