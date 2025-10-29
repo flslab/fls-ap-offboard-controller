@@ -1113,9 +1113,7 @@ class Controller:
             # the yaw extension to GPS_INPUT uses 0 as no yaw support
             yaw_cd = 36000
 
-        ignore_flags = (
-            mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_YAW
-        )
+        ignore_flags = 0
 
         # self.logger.debug(f"Position X: {x}, Y: {y}, Z: {z}")
         # self.logger.debug(f"Lat: {int(gps_lat * 1.0e7)} , Lon: {int(gps_lon * 1.0e7)}, Alt: {gps_alt}")
