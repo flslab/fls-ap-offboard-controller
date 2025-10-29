@@ -1330,17 +1330,6 @@ class Controller:
     def stop(self):
         self.land()
 
-        if args.led:
-            led.stop()
-
-        if args.localize:
-            self.running_position_estimation = False
-            localize_thread.join()
-
-        if args.vicon or args.save_vicon:
-            mocap_wrapper.close()
-            # vicon_thread.stop()
-
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
@@ -1505,6 +1494,20 @@ if __name__ == "__main__":
             # exit()
         c.start_flight()
     c.stop()
+
+    if args.led:
+        led.stop()
+
+    if args.localize:
+        c.running_position_estimation = False
+        localize_thread.join()
+
+    if args.vicon or args.save_vicon:
+        mocap_wrapper.close()
+        # vicon_thread.stop()
+
+    if args.fake_vicon:
+        fv.close()
 
     if mavrouter_proc:
         mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
