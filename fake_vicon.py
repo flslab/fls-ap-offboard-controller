@@ -34,12 +34,10 @@ class FakeVicon(threading.Thread):
         while self._stay_open:
             current_time = time.time()
 
-            if (current_time - last_time) > 0.01:
-                now = time.time()
-                posObj = ObjectOrientation(1,1,1,1)
-                self.send_pos([1,1,1, posObj, now])
+            qvec = ObjectOrientation(0, 0, 1, 0)
+            self.send_pos([0, 0, 0, qvec, current_time])
+            time.sleep(1/100)
 
             if (current_time - last_time) > 1:
                 current_time_us = int(current_time * 1.0e6)
                 self.set_origin(current_time_us)
-
