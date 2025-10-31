@@ -1392,6 +1392,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mission", type=str, help="path to mission way points file")
     arg_parser.add_argument("--idle", action="store_true", help="sit idle")
     arg_parser.add_argument("--router", action="store_true", help="start mavling-routerd to connect both this script and the qgroundcontrol to the drone")
+    arg_parser.add_argument("--proxy", action="store_true", help="start mavproxy")
     arg_parser.add_argument("--simple-takeoff", action="store_true", help="takeoff and land")
     arg_parser.add_argument("--fig8", action="store_true", help="fly figure 8 pattern")
     arg_parser.add_argument("--autotune", action="store_true", help="perform PID autotune")
@@ -1417,7 +1418,7 @@ if __name__ == "__main__":
             takeoff_altitude=args.takeoff_altitude,
             land_altitude=args.land_altitude,
             sim=args.sim,
-            router=args.router,
+            router=args.router or args.proxy,
             logger=logger,
             flight_duration=args.duration,
             voltage_threshold=args.voltage,
@@ -1471,18 +1472,8 @@ if __name__ == "__main__":
             localize_thread.start()
 
         if args.fake_vicon:
-            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(time.time() * 1e6))
-            c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
-
-            # Verify by checking for GPS_GLOBAL_ORIGIN message
-            msg = c.master.recv_match(type='GPS_GLOBAL_ORIGIN', blocking=True, timeout=3)
-            if msg:
-                origin_lat = msg.latitude / 1e7
-                origin_lon = msg.longitude / 1e7
-                origin_alt = msg.altitude / 1000.0
-                print(f"✓ EKF origin confirmed: {origin_lat:.6f}, {origin_lon:.6f}, {origin_alt:.1f}m")
-            else:
-                print("Could not confirm EKF origin (may still be set)")
+            # c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(time.time() * 1e6))
+            # c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
 
             from fake_vicon import FakeVicon
 
@@ -1495,8 +1486,8 @@ if __name__ == "__main__":
             fv.start()
 
         if args.vicon:
-            c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(time.time() * 1e6))
-            c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
+            # c.master.mav.set_gps_global_origin_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), int(time.time() * 1e6))
+            # c.master.mav.set_home_position_send(1, int(lat * 1.0e7), int(lon * 1.0e7), int(alt * 1.0e3), 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
 
             from mocap import MocapWrapper
 
@@ -1513,7 +1504,7 @@ if __name__ == "__main__":
         elif args.save_vicon:
             from mocap import MocapWrapper
 
-            mocap_wrapper = MocapWrapper(args.rigid_body_name)
+            mocap_wrapper = MocapWrapper(args.rigid_body_name, rate=args.vicon_rate)
             # from vicon import ViconWrapper
 
             # vicon_thread = ViconWrapper(log_level=log_level)
