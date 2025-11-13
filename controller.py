@@ -1053,7 +1053,7 @@ class Controller:
 
                 # self.send_position_estimate(y, -x, -z)
                 vx, vy, vz = self.velocity_estimator.update(x, y, z, timestamp=last_valid)
-                self.send_vision_odometry(y, -x, -z, vy, -vx, -vz)
+                self.send_vision_odometry(y, -x, -z, vy, -vx, -vz, timestamp=last_valid)
                 # self.send_distance_sensor(z * 10)
             else:
                 pass
