@@ -58,3 +58,8 @@ class MocapWrapper(threading.Thread):
                     })
                     i += 1
 
+
+if __name__ == "__main__":
+    mw = MocapWrapper("fls_ap_y")
+    time.sleep(140)
+    mw.close()
