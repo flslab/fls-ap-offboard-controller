@@ -1,3 +1,4 @@
+import argparse
 import threading
 import os
 import json
@@ -60,6 +61,10 @@ class MocapWrapper(threading.Thread):
 
 
 if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-t", default=140, type=int, help="duration")
+    args = ap.parse_args()
+
     mw = MocapWrapper("fls_ap_y")
-    time.sleep(140)
+    time.sleep(args.t)
     mw.close()
