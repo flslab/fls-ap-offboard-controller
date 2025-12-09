@@ -107,6 +107,7 @@ class Controller:
         self.initial_yaw = 0
         self.mission_items = []
         self.velocity_estimator = VelocityEstimator(filter_alpha=0.1)
+        self.servo_ctl = None
 
     def connect(self):
         if self.sim or self.router:
@@ -1110,6 +1111,22 @@ class Controller:
         self.set_mode("AUTOTUNE")
         input("press enter to land")
 
+    def servo_seq_1(self):
+        self.servo_ctl.set_a_b(0, 0)
+        time.sleep(1)
+        self.servo_ctl.set_a_b(90, 90)
+        time.sleep(1)
+        self.servo_ctl.set_a_b(180, 180)
+        time.sleep(1)
+        self.servo_ctl.set_a_b(0, 0)
+
+    def servo_seq_2(self):
+        self.servo_ctl.set_a_b(0, 0)
+        time.sleep(1)
+        self.servo_ctl.set_a(90)
+        time.sleep(1)
+        self.servo_ctl.set_a(0)
+
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
         time.sleep(3)
@@ -1134,10 +1151,15 @@ class Controller:
             # flight_thread = Thread(target=self.test_s_trajectory)
             # flight_thread = Thread(target=self.circular_trajectory)
 
+
+
         self.running_battery_watcher = True
         battery_thread.start()
         flight_thread.start()
-
+        if args.servo:
+            servo_thread = Thread(target=self.servo_seq_1)
+            servo_thread.start()
+            servo_thread.join()
         flight_thread.join()
         self.running_battery_watcher = False
         battery_thread.join()
@@ -1220,6 +1242,9 @@ class Controller:
         if args.vicon or args.save_vicon:
             mocap_wrapper.close()
             # vicon_thread.stop()
+
+        if args.servo:
+            del self.servo_ctl
 
 
 if __name__ == "__main__":
@@ -1362,10 +1387,15 @@ if __name__ == "__main__":
         c.send_mission_from_file(args.mission)
 
     if args.led:
-        from led import MovingDotLED
+        from led import LED
 
-        led = MovingDotLED(brightness=args.led_brightness)
+        led = LED(brightness=args.led_brightness)
         led.start()
+        led.show_single_color()
+
+    if args.servo:
+        from servo_pwm import Servo
+        c.servo_ctl = Servo()
 
     if args.idle:
         time.sleep(args.duration)
@@ -1373,7 +1403,10 @@ if __name__ == "__main__":
         if not c.arm_with_retry():
             pass
             # exit()
-        c.start_flight()
+        try:
+            c.start_flight()
+        except KeyboardInterrupt:
+            c.logger.error("Stopped by the user.")
     c.stop()
 
     if mavrouter_proc is not None:
