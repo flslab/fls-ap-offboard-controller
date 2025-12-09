@@ -5,7 +5,7 @@ import neopixel_spi as neopixel
 
 
 class MovingDotLED(threading.Thread):
-    def __init__(self, num_pixels=46, color=(227, 253, 255), tail_decay=0.75, delay=0.02, brightness=1.0):
+    def __init__(self, num_pixels=72, color=(227, 253, 255), tail_decay=0.75, delay=0.02, brightness=1.0):
         super().__init__()
         self.num_pixels = num_pixels
         self.color = color
@@ -53,6 +53,12 @@ class MovingDotLED(threading.Thread):
         # self.leds[34] = self.color
         # self.draw_frame()
 
+    def show_single_color(self):
+        for pos in range(self.num_pixels):
+            self.leds[pos] = self.color
+        self.draw_frame()
+
+    def halo_loop(self):
         while self.running:
             for pos in range(self.num_pixels):
                 if not self.running:
@@ -75,5 +81,6 @@ class MovingDotLED(threading.Thread):
 if __name__ == '__main__':
     led = MovingDotLED()
     led.start()
+    # led.show_single_color()
     time.sleep(10)
     led.stop()
