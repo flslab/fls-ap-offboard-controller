@@ -83,6 +83,4 @@ if __name__ == '__main__':
     led.start()
     led.show_single_color()
     time.sleep(10)
-    led.halo_loop()
-    time.sleep(10)
     led.stop()
