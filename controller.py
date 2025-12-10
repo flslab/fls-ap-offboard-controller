@@ -1169,7 +1169,13 @@ class Controller:
         battery_thread.start()
         flight_thread.start()
         if args.servo:
-            servo_thread = Thread(target=self.servo_seq_1)
+            if args.servo == 1:
+                target = self.servo_seq_1
+            elif args.servo == 2:
+                target = self.servo_seq_2
+            elif args.servo == 3:
+                target = self.servo_seq_3
+            servo_thread = Thread(target=self.target)
             servo_thread.start()
             servo_thread.join()
         flight_thread.join()
@@ -1264,7 +1270,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
-    arg_parser.add_argument("--servo", action="store_true", help="turn on the servos")
+    arg_parser.add_argument("--servo", type=int, default=0, help="turn on the servos")
     arg_parser.add_argument("--led-brightness", type=float, default=1.0, help="change led brightness between 0 and 1")
     arg_parser.add_argument("--land", action="store_true", help="land and exit")
     arg_parser.add_argument("--status", action="store_true", help="show battery voltage and current")
@@ -1411,7 +1417,11 @@ if __name__ == "__main__":
         c.servo_ctl = Servo()
 
     if args.idle:
-        if args.servo:
+        if args.servo == 1:
+            c.servo_seq_1()
+        elif args.servo == 2:
+            c.servo_seq_2()
+        elif args.servo == 3:
             c.servo_seq_3()
         time.sleep(args.duration)
     else:
