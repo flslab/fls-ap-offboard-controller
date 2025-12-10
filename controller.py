@@ -1147,13 +1147,15 @@ class Controller:
         self.servo_ctl.set_b(0)
 
     def servo_seq_4(self):
-        for i in range(45):
-            self.servo_ctl.set_a_b(i*2, i*2)
-            time.sleep(1/45)
+        a = 180
+        t = 2
+        for i in range(a):
+            self.servo_ctl.set_a_b(a, a)
+            time.sleep(2 / a)
 
-        for i in range(45):
-            self.servo_ctl.set_a_b(90 - i * 2, 90 - i * 2)
-            time.sleep(1 / 45)
+        for i in range(a):
+            self.servo_ctl.set_a_b(a - i, a - i)
+            time.sleep(2 / a)
 
         self.servo_ctl.set_a_b(0, 0)
 
