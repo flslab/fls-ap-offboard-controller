@@ -1193,6 +1193,12 @@ class Controller:
         self.running_battery_watcher = True
         battery_thread.start()
         flight_thread.start()
+        self.run_servo()
+        flight_thread.join()
+        self.running_battery_watcher = False
+        battery_thread.join()
+
+    def run_servo(self):
         servo_sequences = [self.servo_seq_1, self.servo_seq_2, self.servo_seq_3, self.servo_seq_4, self.servo_seq_5]
         if args.servo and 0 < args.servo <= 5:
             target = servo_sequences[args.servo - 1]
@@ -1200,9 +1206,6 @@ class Controller:
             servo_thread = Thread(target=target)
             servo_thread.start()
             servo_thread.join()
-        flight_thread.join()
-        self.running_battery_watcher = False
-        battery_thread.join()
 
     def wait_param(self, name, timeout=5):
         """Fetch a parameter and return its value."""
@@ -1439,12 +1442,8 @@ if __name__ == "__main__":
         c.servo_ctl = Servo()
 
     if args.idle:
-        if args.servo == 1:
-            c.servo_seq_1()
-        elif args.servo == 2:
-            c.servo_seq_2()
-        elif args.servo == 3:
-            c.servo_seq_3()
+        if args.servo:
+            c.run_servo()
         time.sleep(args.duration)
     else:
         if not c.arm_with_retry():
