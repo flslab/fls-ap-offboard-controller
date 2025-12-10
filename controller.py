@@ -1252,6 +1252,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
+    arg_parser.add_argument("--servo", action="store_true", help="turn on the servos")
     arg_parser.add_argument("--led-brightness", type=float, default=1.0, help="change led brightness between 0 and 1")
     arg_parser.add_argument("--land", action="store_true", help="land and exit")
     arg_parser.add_argument("--status", action="store_true", help="show battery voltage and current")
