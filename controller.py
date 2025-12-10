@@ -1149,6 +1149,7 @@ class Controller:
     def servo_seq_4(self):
         a = 180
         t = 1
+        time.sleep(2)
         for _ in range(5):
             for i in range(a):
                 self.servo_ctl.set_a_b(i, i)
@@ -1163,6 +1164,7 @@ class Controller:
             time.sleep(1/5)
 
     def servo_seq_5(self):
+        time.sleep(2)
         self.servo_ctl.set_a_b(90, 90)
         time.sleep(1)
 
