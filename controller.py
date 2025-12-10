@@ -1150,12 +1150,12 @@ class Controller:
         a = 180
         t = 2
         for i in range(a):
-            self.servo_ctl.set_a_b(a, a)
-            time.sleep(2 / a)
+            self.servo_ctl.set_a_b(i, i)
+            time.sleep(t / a)
 
         for i in range(a):
             self.servo_ctl.set_a_b(a - i, a - i)
-            time.sleep(2 / a)
+            time.sleep(t / a)
 
         self.servo_ctl.set_a_b(0, 0)
 
