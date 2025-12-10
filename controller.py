@@ -1146,6 +1146,24 @@ class Controller:
         time.sleep(2)
         self.servo_ctl.set_b(0)
 
+    def servo_seq_4(self):
+        for _ in range(5):
+            self.servo_ctl.set_a_b(0, 0)
+            time.sleep(1)
+            self.servo_ctl.set_a_b(180, 180)
+            time.sleep(1)
+
+        self.servo_ctl.set_a_b(0, 0)
+
+    def servo_seq_5(self):
+        self.servo_ctl.set_a_b(90, 90)
+
+        for _ in range(5):
+            self.servo_ctl.set_a_b(60, 120)
+            time.sleep(1)
+            self.servo_ctl.set_a_b(120, 60)
+            time.sleep(1)
+
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
         time.sleep(3)
@@ -1175,13 +1193,10 @@ class Controller:
         self.running_battery_watcher = True
         battery_thread.start()
         flight_thread.start()
-        if args.servo:
-            if args.servo == 1:
-                target = self.servo_seq_1
-            elif args.servo == 2:
-                target = self.servo_seq_2
-            elif args.servo == 3:
-                target = self.servo_seq_3
+        servo_sequences = [self.servo_seq_1, self.servo_seq_2, self.servo_seq_3, self.servo_seq_4, self.servo_seq_5]
+        if args.servo and 0 < args.servo <= 5:
+            target = servo_sequences[args.servo - 1]
+
             servo_thread = Thread(target=target)
             servo_thread.start()
             servo_thread.join()
