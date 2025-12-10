@@ -1175,7 +1175,7 @@ class Controller:
                 target = self.servo_seq_2
             elif args.servo == 3:
                 target = self.servo_seq_3
-            servo_thread = Thread(target=self.target)
+            servo_thread = Thread(target=target)
             servo_thread.start()
             servo_thread.join()
         flight_thread.join()
