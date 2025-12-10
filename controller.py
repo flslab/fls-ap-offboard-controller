@@ -1138,6 +1138,13 @@ class Controller:
         time.sleep(1)
         self.servo_ctl.set_b(180)
         time.sleep(1)
+        self.servo_ctl.set_a(90)
+        time.sleep(1)
+        self.servo_ctl.set_b(90)
+        time.sleep(1)
+        self.servo_ctl.set_a(0)
+        time.sleep(1)
+        self.servo_ctl.set_b(0)
 
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
