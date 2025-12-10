@@ -1398,6 +1398,8 @@ if __name__ == "__main__":
         c.servo_ctl = Servo()
 
     if args.idle:
+        if args.servo:
+            c.servo_seq_1()
         time.sleep(args.duration)
     else:
         if not c.arm_with_retry():
