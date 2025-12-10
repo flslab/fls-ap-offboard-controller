@@ -1157,12 +1157,15 @@ class Controller:
 
     def servo_seq_5(self):
         self.servo_ctl.set_a_b(90, 90)
+        time.sleep(1)
 
         for _ in range(5):
             self.servo_ctl.set_a_b(60, 120)
             time.sleep(1)
             self.servo_ctl.set_a_b(120, 60)
             time.sleep(1)
+
+        self.servo_ctl.set_a_b(0, 0)
 
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
