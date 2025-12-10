@@ -1400,7 +1400,7 @@ if __name__ == "__main__":
 
     if args.idle:
         if args.servo:
-            c.servo_seq_1()
+            c.servo_seq_2()
         time.sleep(args.duration)
     else:
         if not c.arm_with_retry():
