@@ -1150,6 +1150,8 @@ class Controller:
         for _ in range(5):
             self.servo_ctl.set_a_b(0, 0)
             time.sleep(1)
+            self.servo_ctl.set_a_b(90, 90)
+            time.sleep(1)
             self.servo_ctl.set_a_b(180, 180)
             time.sleep(1)
 
