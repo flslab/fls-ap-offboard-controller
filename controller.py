@@ -1127,6 +1127,18 @@ class Controller:
         time.sleep(1)
         self.servo_ctl.set_a(0)
 
+    def servo_seq_3(self):
+        self.servo_ctl.set_a_b(0, 0)
+        time.sleep(1)
+        self.servo_ctl.set_a(90)
+        time.sleep(1)
+        self.servo_ctl.set_b(90)
+        time.sleep(1)
+        self.servo_ctl.set_a(180)
+        time.sleep(1)
+        self.servo_ctl.set_b(180)
+        time.sleep(1)
+
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
         time.sleep(3)
