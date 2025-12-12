@@ -1,3 +1,5 @@
+import argparse
+
 from pi5RC import pi5RC
 
 
@@ -21,18 +23,25 @@ class Servo:
 
 
 if __name__ == '__main__':
-    servos = Servo(4)
-    try:
-        i = 0
-        while True:
-            angle = int(input(f"Enter angle between 0 and 180 for servo {i % 2 + 1}:\n"))
-            if angle > 180:
-                angle = 180
-            if angle < 0:
-                angle = 0
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-n", "--num", default=2, type=int, help="number of servos [1, 4]")
+    args = ap.parse_args()
 
-            servos.set(i % 4, angle)
-            i += 1
+    servos = Servo(args.n)
+
+    try:
+        while True:
+            user_input = input(f"Enter servo index and angle between 0 and 180:\n")
+            if user_input:
+                j, angle = user_input.strip().split(" ")
+                j, angle = int(j), int(angle)
+                if angle > 180:
+                    angle = 180
+                if angle < 0:
+                    angle = 0
+
+                if 0 <= j < args.n:
+                    servos.set(j, angle)
 
     except KeyboardInterrupt:
         print("Program stopped by user")
