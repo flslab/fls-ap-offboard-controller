@@ -49,7 +49,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("-n", default=2, type=int, help="number of servos [1, 4]")
     ap.add_argument("-i", action="store_true")
-    ap.add_argument("--range-test", type=int, nargs="3", help="range test angle1 angle2 repetitions")
+    ap.add_argument("--range-test", type=int, nargs=3, help="range test angle1 angle2 repetitions")
     args = ap.parse_args()
 
     servos = Servo(args.n)
