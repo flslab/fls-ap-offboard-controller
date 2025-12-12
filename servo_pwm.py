@@ -15,8 +15,9 @@ class Servo:
             self.servos[i].set(a)
 
     def __del__(self):
-        for i in range(len(self.servos)):
-            del self.servos[i]
+        for servo in self.servos:
+            del servo
+        self.servos.clear()
 
 
 if __name__ == '__main__':
