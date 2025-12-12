@@ -35,12 +35,12 @@ class Servo:
 def range_test(servos, a, b, n=5):
     for i in range(n):
         for j in range(len(servos)):
-            servos[i] = a
+            servos[j] = a
 
         time.sleep(1)
 
         for j in range(len(servos)):
-            servos[i] = b
+            servos[j] = b
 
         time.sleep(1)
 
