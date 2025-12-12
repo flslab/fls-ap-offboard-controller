@@ -24,7 +24,7 @@ class Servo:
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
-    ap.add_argument("-n", "--num", default=2, type=int, help="number of servos [1, 4]")
+    ap.add_argument("-n", default=2, type=int, help="number of servos [1, 4]")
     args = ap.parse_args()
 
     servos = Servo(args.n)
