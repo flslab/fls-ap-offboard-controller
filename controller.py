@@ -1112,39 +1112,39 @@ class Controller:
         input("press enter to land")
 
     def servo_seq_1(self):
-        self.servo_ctl.set_a_b(0, 0)
+        self.servo_ctl.set_all(0)
         time.sleep(1)
-        self.servo_ctl.set_a_b(90, 90)
+        self.servo_ctl.set_all(90)
         time.sleep(1)
-        self.servo_ctl.set_a_b(180, 180)
+        self.servo_ctl.set_all(180)
         time.sleep(1)
-        self.servo_ctl.set_a_b(0, 0)
+        self.servo_ctl.set_all(0)
 
     def servo_seq_2(self):
-        self.servo_ctl.set_a_b(0, 0)
+        self.servo_ctl.set_all(0)
         time.sleep(1)
-        self.servo_ctl.set_a(90)
+        self.servo_ctl.set(0, 90)
         time.sleep(1)
-        self.servo_ctl.set_a(0)
+        self.servo_ctl.set(0, 0)
 
     def servo_seq_3(self):
-        self.servo_ctl.set_a_b(0, 0)
+        self.servo_ctl.set_all(0)
         time.sleep(2)
-        self.servo_ctl.set_a(90)
+        self.servo_ctl.set(0, 90)
         time.sleep(2)
-        self.servo_ctl.set_b(90)
+        self.servo_ctl.set(1, 90)
         time.sleep(2)
-        self.servo_ctl.set_a(180)
+        self.servo_ctl.set(0, 180)
         time.sleep(2)
-        self.servo_ctl.set_b(180)
+        self.servo_ctl.set(1, 180)
         time.sleep(2)
-        self.servo_ctl.set_a(90)
+        self.servo_ctl.set(0, 90)
         time.sleep(2)
-        self.servo_ctl.set_b(90)
+        self.servo_ctl.set(1, 90)
         time.sleep(2)
-        self.servo_ctl.set_a(0)
+        self.servo_ctl.set(0, 0)
         time.sleep(2)
-        self.servo_ctl.set_b(0)
+        self.servo_ctl.set(1, 0)
 
     def servo_seq_4(self):
         a = 180
@@ -1152,29 +1152,31 @@ class Controller:
         time.sleep(2)
         for _ in range(5):
             for i in range(a):
-                self.servo_ctl.set_a_b(i, i)
+                self.servo_ctl.set_all(i)
                 time.sleep(t / a)
 
             time.sleep(1/5)
             for i in range(a):
-                self.servo_ctl.set_a_b(a - i, a - i)
+                self.servo_ctl.set_all(a - i)
                 time.sleep(t / a)
 
-            self.servo_ctl.set_a_b(0, 0)
+            self.servo_ctl.set_all(0)
             time.sleep(1/5)
 
     def servo_seq_5(self):
         time.sleep(2)
-        self.servo_ctl.set_a_b(90, 90)
+        self.servo_ctl.set_all(90)
         time.sleep(1)
 
         for _ in range(5):
-            self.servo_ctl.set_a_b(60, 120)
+            self.servo_ctl.set(0, 60)
+            self.servo_ctl.set(1, 120)
             time.sleep(1)
-            self.servo_ctl.set_a_b(120, 60)
+            self.servo_ctl.set(0, 120)
+            self.servo_ctl.set(1, 60)
             time.sleep(1)
 
-        self.servo_ctl.set_a_b(0, 0)
+        self.servo_ctl.set_all(0)
 
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
@@ -1308,6 +1310,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
     arg_parser.add_argument("--servo", type=int, default=0, help="turn on the servos")
+    arg_parser.add_argument("--servo-count", type=int, default=2, help="number of the servos")
     arg_parser.add_argument("--led-brightness", type=float, default=1.0, help="change led brightness between 0 and 1")
     arg_parser.add_argument("--land", action="store_true", help="land and exit")
     arg_parser.add_argument("--status", action="store_true", help="show battery voltage and current")
@@ -1451,7 +1454,7 @@ if __name__ == "__main__":
 
     if args.servo:
         from servo_pwm import Servo
-        c.servo_ctl = Servo()
+        c.servo_ctl = Servo(args.servo_count)
 
     if args.idle:
         if args.servo:
