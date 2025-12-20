@@ -1329,18 +1329,27 @@ class Controller:
 
         if self.mavproxy:
             try:
-                # Send SIGTERM to the process group (note the minus sign logic or os.getpgid)
-                # os.getpgid(process.pid) gets the group ID of the subprocess
-                os.killpg(os.getpgid(self.mavproxy_process.pid), signal.SIGTERM)
-
-                # Optional: Force kill if it doesn't close after a timeout
-                time.sleep(1)
-                os.killpg(os.getpgid(self.mavproxy_process.pid), signal.SIGKILL)
-
-                self.mavproxy_process.wait()
-                self.logger.info("MAVProxy terminated.")
+                pgid = os.getpgid(self.mavproxy_process.pid)
             except ProcessLookupError:
-                self.logger.warn("MAVProxy was already terminated.")
+                print("MAVProxy is already dead.")
+                return
+
+            try:
+                os.killpg(pgid, signal.SIGTERM)
+                # Wait max 2 seconds for it to shut down cleanly
+                self.mavproxy_process.wait(timeout=2)
+                self.logger.info("MAVProxy shut down gracefully.")
+
+            except subprocess.TimeoutExpired:
+                self.logger.info("MAVProxy ignored SIGTERM. Forcing SIGKILL...")
+
+                # 2. Force Kill (SIGKILL) - The "Nuclear" Option
+                try:
+                    os.killpg(pgid, signal.SIGKILL)
+                    self.mavproxy_process.wait(timeout=1)  # Should die immediately
+                    self.logger.info("MAVProxy was force-killed.")
+                except Exception as e:
+                    self.logger.error(f"Error during force kill: {e}")
 
 
 if __name__ == "__main__":
