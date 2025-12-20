@@ -128,7 +128,7 @@ class Controller:
             # Start the process without blocking the script
             self.mavproxy_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             self.logger.info(f"MAVProxy started on process ID {self.mavproxy_process.pid}")
-            time.sleep(1)
+            time.sleep(5)
 
             self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14556")
 
