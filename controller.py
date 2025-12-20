@@ -123,7 +123,7 @@ class Controller:
                 f"--out=udp:127.0.0.1:14556",
                 f"--out=udp:192.168.1.230:14550",
                 "--load-module=vicon",
-                "--cmd=\"vicon set object_name fls_ap_y; vicon set vision_rate 50; vicon set gps_rate 30; vicon set; vicon start;\"",
+                "--cmd=\"vicon set object_name fls_ap_y; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
                 "--daemon",
             ]
 
