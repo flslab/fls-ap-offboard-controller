@@ -118,7 +118,7 @@ class Controller:
                 "mavproxy.py",
                 f"--master={self.device}",
                 f"--baudrate={self.baudrate}",
-                f"--out=udp:127.0.0.1:14555",
+                f"--out=udp:127.0.0.1:14556",
                 f"--out=udp:192.168.1.230:14550",
                 "--load-module=vicon",
                 "--cmd=\"vicon set object_name fls_ap_y; vicon set; vicon start;\"",
@@ -130,7 +130,7 @@ class Controller:
             self.logger.info(f"MAVProxy started on process ID {self.mavproxy_process.pid}")
             time.sleep(1)
 
-            self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14555")
+            self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14556")
 
         elif self.sim or self.router:
             self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14551")
