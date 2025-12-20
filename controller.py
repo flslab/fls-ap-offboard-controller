@@ -119,6 +119,7 @@ class Controller:
                 f"--master={self.device}",
                 f"--baudrate={self.baudrate}",
                 f"--out=udp:127.0.0.1:14555",
+                f"--out=udp:192.168.1.230:14550",
                 "--daemon",
                 "--cmd=\"module load vicon; vicon set object_name fls_ap_y; vicon set; vicon start;\""
             ]
