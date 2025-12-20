@@ -120,13 +120,15 @@ class Controller:
                 f"--baudrate={self.baudrate}",
                 f"--out=udp:127.0.0.1:14555",
                 f"--out=udp:192.168.1.230:14550",
+                "--load-module=vicon",
+                "--cmd=\"vicon set object_name fls_ap_y; vicon set; vicon start;\"",
                 "--daemon",
-                "--cmd=\"module load vicon; vicon set object_name fls_ap_y; vicon set; vicon start;\""
             ]
 
             # Start the process without blocking the script
             self.mavproxy_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             self.logger.info(f"MAVProxy started on process ID {self.mavproxy_process.pid}")
+            time.sleep(1)
 
             self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14555")
 
