@@ -85,6 +85,7 @@ class Controller:
     def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
                  sim=False,
                  router=False,
+                 mavproxy=False,
                  device="/dev/ttyAMA0",
                  baudrate=921600):
         self.device = device
@@ -108,9 +109,27 @@ class Controller:
         self.mission_items = []
         self.velocity_estimator = VelocityEstimator(filter_alpha=0.1)
         self.servo_ctl = None
+        self.mavproxy_process = None
+        self.mavproxy = mavproxy
 
     def connect(self):
-        if self.sim or self.router:
+        if self.mavproxy:
+            cmd = [
+                "mavproxy.py",
+                f"--master={self.device}",
+                f"--baudrate={self.baudrate}",
+                f"--out=udp:127.0.0.1:14555",
+                "--daemon",
+                "--cmd=\"module load vicon; vicon set object_name fls_ap_y; vicon set; vicon start;\""
+            ]
+
+            # Start the process without blocking the script
+            self.mavproxy_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.logger.info(f"MAVProxy started on process ID {self.mavproxy_process.pid}")
+
+            self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14555")
+
+        elif self.sim or self.router:
             self.master = mavutil.mavlink_connection("udpin:127.0.0.1:14551")
         else:
             self.master = mavutil.mavlink_connection(self.device, baud=self.baudrate)
@@ -1303,6 +1322,10 @@ class Controller:
         if args.servo:
             del self.servo_ctl
 
+        if self.mavproxy:
+            self.mavproxy_process.terminate()
+            self.mavproxy_process.wait()
+
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
@@ -1317,6 +1340,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--debug", action="store_true", help="show debug logs")
     arg_parser.add_argument("--sim", action="store_true", help="connect to simulator")
     arg_parser.add_argument("--router", action="store_true", help="start mavling-routerd to connect both this script and the qgroundcontrol to the drone")
+    arg_parser.add_argument("--mavproxy", action="store_true", help="start mavproxy")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
     arg_parser.add_argument("--rigid-body-name", type=str, default="fls_ap_y",
@@ -1359,6 +1383,7 @@ if __name__ == "__main__":
         land_altitude=args.land_altitude,
         sim=args.sim,
         router=args.router,
+        mavproxy=args.mavproxy,
         log_level=log_level,
         flight_duration=args.duration,
         voltage_threshold=args.voltage,
