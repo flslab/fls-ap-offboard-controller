@@ -121,7 +121,7 @@ class Controller:
                 f"--out=udp:127.0.0.1:14556",
                 f"--out=udp:192.168.1.230:14550",
                 "--load-module=vicon",
-                "--cmd=\"vicon set object_name fls_ap_y; vicon set; vicon start; set requireexit True;\"",
+                "--cmd=\"vicon set object_name fls_ap_y; vicon set; vicon start;\"",
                 "--daemon",
             ]
 
@@ -1326,8 +1326,8 @@ class Controller:
             del self.servo_ctl
 
         if self.mavproxy:
-            self.mavproxy_process.terminate()
-            self.mavproxy_process.wait()
+            self.mavproxy_process.send_signal(signal.SIGINT)
+            self.mavproxy_process.wait(timeout=5)
 
 
 if __name__ == "__main__":
