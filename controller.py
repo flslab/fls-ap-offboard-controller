@@ -5,6 +5,8 @@ import signal
 import struct
 import subprocess
 import time
+import os
+import signal
 import math
 import mmap
 from threading import Thread
@@ -126,7 +128,7 @@ class Controller:
             ]
 
             # Start the process without blocking the script
-            self.mavproxy_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.mavproxy_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
             self.logger.info(f"MAVProxy started on process ID {self.mavproxy_process.pid}")
             time.sleep(1)
 
@@ -1326,8 +1328,19 @@ class Controller:
             del self.servo_ctl
 
         if self.mavproxy:
-            self.mavproxy_process.send_signal(signal.SIGINT)
-            self.mavproxy_process.wait(timeout=5)
+            try:
+                # Send SIGTERM to the process group (note the minus sign logic or os.getpgid)
+                # os.getpgid(process.pid) gets the group ID of the subprocess
+                os.killpg(os.getpgid(self.mavproxy_process.pid), signal.SIGTERM)
+
+                # Optional: Force kill if it doesn't close after a timeout
+                # time.sleep(1)
+                # os.killpg(os.getpgid(mavproxy_process.pid), signal.SIGKILL)
+
+                self.mavproxy_process.wait()
+                self.logger.info("MAVProxy terminated.")
+            except ProcessLookupError:
+                self.logger.warn("MAVProxy was already terminated.")
 
 
 if __name__ == "__main__":
