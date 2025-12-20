@@ -1334,8 +1334,8 @@ class Controller:
                 os.killpg(os.getpgid(self.mavproxy_process.pid), signal.SIGTERM)
 
                 # Optional: Force kill if it doesn't close after a timeout
-                # time.sleep(1)
-                # os.killpg(os.getpgid(mavproxy_process.pid), signal.SIGKILL)
+                time.sleep(1)
+                os.killpg(os.getpgid(self.mavproxy_process.pid), signal.SIGKILL)
 
                 self.mavproxy_process.wait()
                 self.logger.info("MAVProxy terminated.")
