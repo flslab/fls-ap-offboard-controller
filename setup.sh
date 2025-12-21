@@ -83,6 +83,7 @@ else
     git clone "$MAVPROXY_REPO" "$MAVPROXY_REPO_DIR"
 fi
 cd "$MAVPROXY_REPO_DIR"
+git pull
 python setup.py build install
 sudo apt install libgtk-3-dev
 pip install pathlib2
@@ -96,6 +97,7 @@ else
 fi
 sudo apt install -y cmake libopencv-dev nlohmann-json3-dev libeigen3-dev libcamera-dev
 cd "$CAM_LOC_REPO_DIR"
+git pull
 mkdir build -p
 cd build
 mkdir logs -p
