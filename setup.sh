@@ -21,9 +21,9 @@ CONFIGS_TO_ADD=(
 )
 
 CAM_LOC_REPO="https://github.com/flslab/fls-marker-localization.git"
-CAM_LOC_REPO_DIR="~/fls-marker-localization"
+CAM_LOC_REPO_DIR="$HOME/fls-marker-localization"
 MAVPROXY_REPO="https://github.com/Hamedamz/MAVProxyVicon"
-MAVPROXY_REPO_DIR="~/MAVProxyVicon"
+MAVPROXY_REPO_DIR="$HOME/MAVProxyVicon"
 
 sudo -v
 
@@ -101,4 +101,4 @@ cd build
 mkdir logs -p
 cmake ..
 make -j4
-cp ../src/gs_camera_config.json camera_config.json
+cp ../src/dfrobot_gs_camera_config.json camera_config.json
