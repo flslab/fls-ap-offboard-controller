@@ -123,7 +123,7 @@ class Controller:
                 f"--out=udp:127.0.0.1:14556",
                 f"--out=udp:192.168.1.230:14550",
                 "--load-module=vicon",
-                "--cmd=\"vicon set object_name fls_ap_y; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
+                f"--cmd=\"vicon set object_name {args.obj_name}; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
                 "--daemon",
             ]
 
@@ -1368,7 +1368,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--mavproxy", action="store_true", help="start mavproxy")
     arg_parser.add_argument("--localize", action="store_true", help="localize using camera")
     arg_parser.add_argument("--vicon", action="store_true", help="localize using Vicon and save tracking data")
-    arg_parser.add_argument("--rigid-body-name", type=str, default="fls_ap_y",
+    arg_parser.add_argument("--obj-name", type=str, default="fls_ap_y",
                             help="the name of the rigid body that represents the FLS in mocap tracking system, works with --vicon.")
     arg_parser.add_argument("--save-vicon", action="store_true", help="save Vicon tracking data only")
     arg_parser.add_argument("--save-camera", action="store_true",
@@ -1469,7 +1469,7 @@ if __name__ == "__main__":
         c.master.mav.set_home_position_send(1, lat, lon, alt, 0, 0, 0, [1, 0, 0, 0], 0, 0, 1)
 
         from mocap import MocapWrapper
-        mocap_wrapper = MocapWrapper(args.rigid_body_name)
+        mocap_wrapper = MocapWrapper(args.obj_name)
         mocap_wrapper.on_pose = lambda frame: c.send_vicon_position(frame[0], frame[1], frame[2], frame[4])
         # from vicon import ViconWrapper
 
@@ -1477,7 +1477,7 @@ if __name__ == "__main__":
         # vicon_thread.start()
     elif args.save_vicon:
         from mocap import MocapWrapper
-        mocap_wrapper = MocapWrapper(args.rigid_body_name)
+        mocap_wrapper = MocapWrapper(args.obj_name)
         # from vicon import ViconWrapper
 
         # vicon_thread = ViconWrapper(log_level=log_level)
