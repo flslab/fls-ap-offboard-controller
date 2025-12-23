@@ -951,9 +951,9 @@ class Controller:
                 self.send_attitude_target_deg(*ori)
                 time.sleep(1 / 20)
 
-        for i in range(30):
-            self.send_velocity_target(0, 0, 0)
-            time.sleep(1 / 20)
+        for i in range(40):
+            self.send_position_target(0, 0, -self.takeoff_altitude)
+            time.sleep(1 / 10)
 
         for ori in waypoints_2:
             for i in range(5):
