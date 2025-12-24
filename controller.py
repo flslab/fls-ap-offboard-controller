@@ -10,6 +10,7 @@ import math
 import mmap
 import urllib.request
 import urllib.error
+from enum import Enum
 from threading import Thread
 import threading
 import queue
@@ -90,15 +91,19 @@ class MissionItem:
 
 
 class FunctionWorker(Thread):
-    def __init__(self, task_queue, logger):
+    def __init__(self, task_queue, logger, before_waiting=None):
         super().__init__()
         self.task_queue = task_queue
         self.daemon = True  # Ensures thread dies when the main program exits
         self._stop_event = threading.Event()
         self.logger = logger
+        self.before_waiting = before_waiting
 
     def run(self):
         """Main loop that waits for functions and executes them."""
+        if self.before_waiting is not None:
+            self.before_waiting()
+
         while not self._stop_event.is_set():
             try:
                 # Wait for a function to appear in the queue
@@ -120,6 +125,15 @@ class FunctionWorker(Thread):
     def stop(self):
         """Signal the thread to exit the loop gracefully."""
         self._stop_event.set()
+
+
+class DroneState(Enum):
+    DISARMED = 0
+    ARMED = 1
+    FLYING = 2
+    LANDED = 3
+    INITIALIZING = 4
+    READY = 5
 
 
 class Controller:
@@ -160,6 +174,7 @@ class Controller:
         self.led_ctl = None
         self.servo_worker = None
         self.servo_ctl = None
+        self.state = DroneState.DISARMED
 
         if self.drone_id is not None:
             self.load_manifest()
@@ -1626,6 +1641,12 @@ if __name__ == "__main__":
         # vicon_thread = ViconWrapper(log_level=log_level)
         # vicon_thread.start()
 
+    if args.led:
+        from led import LED
+
+        led = LED(brightness=args.led_brightness)
+        led.show_single_color(color=(200, 230, 0))
+
     c.request_data()
     c.check_preflight()
     c.set_initial_yaw()
@@ -1671,13 +1692,6 @@ if __name__ == "__main__":
 
     if args.mission:
         c.send_mission_from_file(args.mission)
-
-    if args.led:
-        from led import LED
-
-        led = LED(brightness=args.led_brightness)
-        led.start()
-        led.show_single_color()
 
     if args.idle:
         if args.servo and args.servo_test:
