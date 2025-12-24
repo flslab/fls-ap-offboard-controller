@@ -7,6 +7,15 @@ from pi5RC import pi5RC
 pwm_pins = [19, 18, 12, 13]
 
 
+def sign(n):
+    if n < 0:
+        return -1
+    elif n > 0:
+        return 1
+    else:
+        return 0
+
+
 class Servo:
     def __init__(self, num=2, offsets=None):
         if offsets is None:
@@ -34,7 +43,7 @@ class Servo:
             n = abs(delta_angle) // self.tick_angle
 
             for i in range(n):
-                angle_i = start_angle + (i + 1) * self.tick_angle
+                angle_i = start_angle + (i + 1) * self.tick_angle * sign(delta_angle)
                 self.servos[index].set(angle_i)
                 self.values[index] = angle_i
                 time.sleep(self.tick_duration)
@@ -55,7 +64,7 @@ class Servo:
             for i in range(max(ns)):
                 for index in range(len(self.servos)):
                     if i < ns[index]:
-                        angle_i = start_angles[index] + (i + 1) * self.tick_angle
+                        angle_i = start_angles[index] + (i + 1) * self.tick_angle * sign(delta_angles[index])
                         self.servos[index].set(angle_i)
                         self.values[index] = angle_i
 
