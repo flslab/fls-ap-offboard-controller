@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-import signal
 import struct
 import subprocess
 import time
@@ -9,13 +8,18 @@ import os
 import signal
 import math
 import mmap
+import urllib.request
+import urllib.error
 from threading import Thread
 
 import numpy as np
+import zmq
 from pymavlink import mavutil
 
 from log import LoggerFactory
 from velocity_estimator import VelocityEstimator
+
+LOCAL_COORDS_PATH = "initial_coords.json"
 
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
@@ -89,7 +93,9 @@ class Controller:
                  router=False,
                  mavproxy=False,
                  device="/dev/ttyAMA0",
-                 baudrate=921600):
+                 baudrate=921600,
+                 drone_id=None):
+        self.drone_id = drone_id
         self.device = device
         self.baudrate = baudrate
         self.master = None
@@ -113,6 +119,9 @@ class Controller:
         self.servo_ctl = None
         self.mavproxy_process = None
         self.mavproxy = mavproxy
+        self.manifest = None
+        self.initial_coord = np.array([0, 0, 0])
+        self.mission = None
 
     def connect(self):
         if self.mavproxy:
@@ -166,6 +175,48 @@ class Controller:
 
         self.logger.info("Waiting for system initialization...")
         time.sleep(5)
+
+    def load_manifest(self):
+        if self.drone_id is None:
+            return
+
+        with open('swarm_manifest.json', 'r') as f:
+            self.manifest = json.load(f)
+
+    def download_config_http(self):
+        """
+        Downloads a file from the Laptop's HTTP server.
+        """
+        if self.drone_id is None:
+            return
+
+        ip = self.manifest['controller']['ip']
+        port = self.manifest['controller']['http_port']
+        filename = self.manifest['controller']['mission_file']
+        url = f"http://{ip}:{port}/{filename}"
+
+        print(f"  > Requesting: {url}")
+
+        try:
+            # Download and save to current directory
+            with urllib.request.urlopen(url) as response:
+                data = response.read().decode('utf-8')
+                self.mission = json.loads(data)
+
+            print(f"  > Download successful: {filename}")
+
+        except urllib.error.URLError as e:
+            print(f"  > HTTP Error: {e}")
+            raise
+
+    def wait_for_local_coords(self):
+        while not os.path.exists(LOCAL_COORDS_PATH):
+            time.sleep(1)
+
+        time.sleep(0.1)
+
+        with open(LOCAL_COORDS_PATH, 'r') as f:
+            self.initial_coord = np.array(json.load(f)['coord'])
 
     def set_initial_yaw(self):
         msg = self.master.recv_match(type='ATTITUDE', blocking=True)
@@ -830,22 +881,17 @@ class Controller:
         self.upload_mission(self.mission_items)
 
     def start_mission(self):
-        self.master.mav.command_long_send(
-            self.master.target_system,
-            self.master.target_component,
-            mavutil.mavlink.MAV_CMD_MISSION_START,
-            0,  # confirmation
-            0, 0, 0, 0, 0, 0, 0  # unused parameters
-        )
-        self.wait_for_command_ack(command=mavutil.mavlink.MAV_CMD_MISSION_START)
+        x, y, z = self.mission[self.drone_id]['target']
+        points = [(x, y, -z)]
 
-        for mission_item in self.mission_items:
-            msg = self.master.recv_match(
-                type='MISSION_ITEM_REACHED',
-                condition=f'MISSION_ITEM_REACHED.seq == {mission_item.seq}',
-                blocking=True
-            )
-            self.logger.info(msg)
+        for j in range(1):
+            for point in points:
+                for i in range(int(self.flight_duration * 10)):
+                    if self.failsafe:
+                        return
+                    self.send_position_target(point[0], point[1], point[2])
+                    time.sleep(1 / 10)
+
 
     def generate_pos_vel_path(self, waypoints, target_speed, dt):
         path = []
@@ -1227,7 +1273,9 @@ class Controller:
         c.takeoff()
         time.sleep(2)
 
-        if args.simple_takeoff:
+        if args.drone_id is not None:
+            flight_thread = Thread(target=self.start_mission)
+        elif args.simple_takeoff:
             flight_thread = Thread(target=self.simple_takeoff)
         elif args.fig8:
             flight_thread = Thread(target=self.fly_figure_eight)
@@ -1375,6 +1423,7 @@ class Controller:
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("--drone-id", type="str", help="drone id")
     arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
@@ -1414,6 +1463,9 @@ if __name__ == "__main__":
     arg_parser.add_argument("--tune-throttle", action="store_true", help="fly tune pattern for throttle")
     args = arg_parser.parse_args()
 
+    if os.path.exists(LOCAL_COORDS_PATH):
+        os.remove(LOCAL_COORDS_PATH)
+
     mavrouter_proc = None
     if args.router:
         mavrouter_params = [
@@ -1434,6 +1486,7 @@ if __name__ == "__main__":
         log_level=log_level,
         flight_duration=args.duration,
         voltage_threshold=args.voltage,
+        id=args.drone_id
     )
     c.connect()
 
@@ -1510,9 +1563,43 @@ if __name__ == "__main__":
     c.set_initial_yaw()
     c.set_battery_cells()
 
+    c.load_manifest()
+    try:
+        c.download_config_http()
+    except Exception:
+        c.logger.error("could not download mission file.")
+        exit()
+    c.wait_for_local_coords()
+
+
     if not c.set_mode('GUIDED'):
         pass
         # exit()
+
+    # ZMQ Handshake
+    if args.drone_id is not None:
+        ctrl = c.manifest['controller']
+        context = zmq.Context()
+        ack_socket = context.socket(zmq.PUSH)
+        ack_socket.connect(f"tcp://{ctrl['ip']}:{ctrl['zmq_ack_port']}")
+
+        sub_socket = context.socket(zmq.SUB)
+        sub_socket.connect(f"tcp://{ctrl['ip']}:{ctrl['zmq_cmd_port']}")
+        sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+
+        print(f"[{args.drone_id}] Sending READY...")
+        ack_socket.send_json({"id": args.drone_id, "status": "READY"})
+
+        print(f"[{args.drone_id}] Waiting for START...")
+        while True:
+            msg = sub_socket.recv_json()
+            if msg.get('cmd') == 'START':
+                break
+
+        delay = int(args.drone_id) * c.manifest['mission']['delta_t']
+        print(f"[{args.drone_id}] Launching in {delay}s...")
+        time.sleep(delay)
+        print(f"[{args.drone_id}] TAKING OFF!")
 
     if args.mission:
         c.send_mission_from_file(args.mission)
