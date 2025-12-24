@@ -977,7 +977,7 @@ class Controller:
         points = [(x, -y, -z)]
 
         flight_duration = self.mission[self.drone_id]['servo']['delta_t'] * self.mission[self.drone_id]['servo']['iterations'] * 2
-
+        flight_duration = max(flight_duration, self.flight_duration)
         servo_thread = Thread(target=self.servo_test_pattern)
         servo_thread.start()
 
