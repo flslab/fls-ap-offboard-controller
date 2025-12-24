@@ -1488,7 +1488,7 @@ if __name__ == "__main__":
         log_level=log_level,
         flight_duration=args.duration,
         voltage_threshold=args.voltage,
-        id=args.drone_id
+        drone_id=args.drone_id
     )
     c.connect()
 
