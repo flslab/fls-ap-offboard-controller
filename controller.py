@@ -951,20 +951,42 @@ class Controller:
 
         self.upload_mission(self.mission_items)
 
+    def servo_test_pattern(self):
+        servo_setting = self.mission[self.drone_id]['servo']
+        angles_1 = servo_setting['start']
+        angles_2 = servo_setting['end']
+        delta_t = servo_setting['delta_t']
+        iterations = servo_setting['iterations']
+
+        for _ in iterations:
+            self.servo_ctl.set_all_smooth(angles_1)
+            time.sleep(delta_t)
+            self.servo_ctl.set_all_smooth(angles_2)
+            time.sleep(delta_t)
+
     def start_mission(self):
         x, y, z = self.mission[self.drone_id]['target']
+        led_color = self.mission[self.drone_id]['color']
+        led.show(led_color)
         ix, iy, iz = self.initial_coord
         x, y, z = x - ix, y - iy, z
         points = [(x, -y, -z)]
 
+        flight_duration = self.mission[self.drone_id]['servo']['deta_t'] * self.mission[self.drone_id]['servo']['iterations'] * 2
+
+        servo_thread = Thread(target=self.servo_test_pattern)
+        servo_thread.start()
+
         for j in range(1):
             for point in points:
-                for i in range(int(self.flight_duration * 10)):
+                for i in range(int(flight_duration * 10)):
                     if self.failsafe:
                         return
                     self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 10)
 
+        servo_thread.join()
+        led.clear()
         for _ in range(20):
             if self.failsafe:
                 return
@@ -1378,7 +1400,7 @@ class Controller:
         self.running_battery_watcher = True
         battery_thread.start()
         flight_thread.start()
-        self.run_servo()
+        # self.run_servo()
         flight_thread.join()
         self.running_battery_watcher = False
         battery_thread.join()
@@ -1665,6 +1687,9 @@ if __name__ == "__main__":
         pass
         # exit()
 
+    if args.led:
+        led.show_single_color(color=(230, 60, 70))
+
     # ZMQ Handshake
     if args.drone_id is not None:
         ctrl = c.manifest['controller']
@@ -1689,6 +1714,7 @@ if __name__ == "__main__":
         c.logger.info(f"[{args.drone_id}] Launching in {delay}s...")
         time.sleep(delay)
         c.logger.info(f"[{args.drone_id}] TAKING OFF!")
+        led.clear()
 
     if args.mission:
         c.send_mission_from_file(args.mission)
