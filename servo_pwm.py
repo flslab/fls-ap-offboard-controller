@@ -14,7 +14,7 @@ class Servo:
         self.servos = [pi5RC(pwm_pins[i]) for i in range(num)]
         self.offsets = offsets
         self.values = [None, None]
-        self.tick_angle = 2
+        self.tick_angle = 5
         self.tick_duration = 0.1
 
     def set(self, index, a):
@@ -31,7 +31,7 @@ class Servo:
         if 0 <= angle <= 180:
             start_angle = self.values[index]
             delta_angle = angle - start_angle
-            n = delta_angle // self.tick_angle
+            n = abs(delta_angle) // self.tick_angle
 
             for i in range(n):
                 angle_i = start_angle + (i + 1) * self.tick_angle
@@ -50,7 +50,7 @@ class Servo:
         if all(0 <= x <= 180 for x in angles):
             start_angles = [v for v in self.values]
             delta_angles = [angle - start_angle for angle, start_angle in zip(angles, start_angles)]
-            ns = [delta_angle // self.tick_angle for delta_angle in delta_angles]
+            ns = [abs(delta_angle) // self.tick_angle for delta_angle in delta_angles]
 
             for i in range(max(ns)):
                 for index in range(len(self.servos)):
