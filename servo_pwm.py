@@ -23,8 +23,8 @@ class Servo:
         self.servos = [pi5RC(pwm_pins[i]) for i in range(num)]
         self.offsets = offsets
         self.values = [None, None]
-        self.tick_angle = 5
-        self.tick_duration = 0.05
+        self.tick_angle = 1
+        self.tick_duration = 0.01
 
     def set(self, index, a):
         angle = a + self.offsets[index]
