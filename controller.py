@@ -195,7 +195,7 @@ class Controller:
         filename = self.manifest['controller']['mission_file']
         url = f"http://{ip}:{port}/{filename}"
 
-        print(f"  > Requesting: {url}")
+        self.logger.info(f"  > Requesting: {url}")
 
         try:
             # Download and save to current directory
@@ -203,10 +203,10 @@ class Controller:
                 data = response.read().decode('utf-8')
                 self.mission = json.loads(data)
 
-            print(f"  > Download successful: {filename}")
+            self.logger.info(f"  > Download successful: {filename}")
 
         except urllib.error.URLError as e:
-            print(f"  > HTTP Error: {e}")
+            self.logger.error(f"  > HTTP Error: {e}")
             raise
 
     def wait_for_local_coords(self):
@@ -217,6 +217,7 @@ class Controller:
 
         with open(LOCAL_COORDS_PATH, 'r') as f:
             self.initial_coord = json.load(f)
+            self.logger.info(f"Initial coords set: {self.initial_coord}")
 
     def set_initial_yaw(self):
         msg = self.master.recv_match(type='ATTITUDE', blocking=True)
@@ -1589,19 +1590,19 @@ if __name__ == "__main__":
         sub_socket.connect(f"tcp://{ctrl['ip']}:{ctrl['zmq_cmd_port']}")
         sub_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 
-        print(f"[{args.drone_id}] Sending READY...")
+        c.logger.info(f"[{args.drone_id}] Sending READY...")
         ack_socket.send_json({"id": args.drone_id, "status": "READY"})
 
-        print(f"[{args.drone_id}] Waiting for START...")
+        c.logger.info(f"[{args.drone_id}] Waiting for START...")
         while True:
             msg = sub_socket.recv_json()
             if msg.get('cmd') == 'START':
                 break
 
         delay = int(args.drone_id) * c.manifest['mission']['delta_t']
-        print(f"[{args.drone_id}] Launching in {delay}s...")
+        c.logger.info(f"[{args.drone_id}] Launching in {delay}s...")
         time.sleep(delay)
-        print(f"[{args.drone_id}] TAKING OFF!")
+        c.logger.info(f"[{args.drone_id}] TAKING OFF!")
 
     if args.mission:
         c.send_mission_from_file(args.mission)
