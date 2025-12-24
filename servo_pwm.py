@@ -71,10 +71,6 @@ if __name__ == '__main__':
                 if user_input:
                     j, angle = user_input.strip().split(" ")
                     j, angle = int(j), int(angle)
-                    if angle > 180:
-                        angle = 180
-                    if angle < 0:
-                        angle = 0
 
                     if 0 <= j < args.n:
                         servos.set(j, angle)
