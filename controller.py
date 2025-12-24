@@ -967,7 +967,7 @@ class Controller:
     def start_mission(self):
         x, y, z = self.mission[self.drone_id]['target']
         led_color = self.mission[self.drone_id]['color']
-        led.show(led_color)
+        led.show_single_color(led_color)
         ix, iy, iz = self.initial_coord
         x, y, z = x - ix, y - iy, z
         points = [(x, -y, -z)]
