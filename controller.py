@@ -168,6 +168,7 @@ class Controller:
             from servo_pwm import Servo
             offsets = [0, -180] if args.servo_type == 'a' else [-90, -270]
             self.servo_ctl = Servo(args.servo_count, offsets)
+            time.sleep(0.1)
             self.set_servo_landing_setting()
 
     def connect(self):
