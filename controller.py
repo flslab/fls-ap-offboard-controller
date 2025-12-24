@@ -960,8 +960,12 @@ class Controller:
 
         for _ in range(iterations):
             self.servo_ctl.set_all_smooth(angles_1)
+            if self.failsafe:
+                return
             time.sleep(delta_t)
             self.servo_ctl.set_all_smooth(angles_2)
+            if self.failsafe:
+                return
             time.sleep(delta_t)
 
     def start_mission(self):
