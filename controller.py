@@ -120,7 +120,7 @@ class Controller:
         self.mavproxy_process = None
         self.mavproxy = mavproxy
         self.manifest = None
-        self.initial_coord = np.array([0, 0, 0])
+        self.initial_coord = [0, 0, 0]
         self.mission = None
 
     def connect(self):
@@ -216,7 +216,7 @@ class Controller:
         time.sleep(0.1)
 
         with open(LOCAL_COORDS_PATH, 'r') as f:
-            self.initial_coord = np.array(json.load(f)['coord'])
+            self.initial_coord = json.load(f)
 
     def set_initial_yaw(self):
         msg = self.master.recv_match(type='ATTITUDE', blocking=True)
@@ -882,7 +882,9 @@ class Controller:
 
     def start_mission(self):
         x, y, z = self.mission[self.drone_id]['target']
-        points = [(x, y, -z)]
+        ix, iy, iz = self.initial_coord
+        x, y, z = x - ix, y - iy, z - iz
+        points = [(x, -y, -z)]
 
         for j in range(1):
             for point in points:
