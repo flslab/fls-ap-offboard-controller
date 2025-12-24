@@ -884,7 +884,7 @@ class Controller:
     def start_mission(self):
         x, y, z = self.mission[self.drone_id]['target']
         ix, iy, iz = self.initial_coord
-        x, y, z = x - ix, y - iy, z - iz
+        x, y, z = x - ix, y - iy, z
         points = [(x, -y, -z)]
 
         for j in range(1):
