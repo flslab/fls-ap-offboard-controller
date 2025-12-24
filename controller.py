@@ -205,11 +205,9 @@ class Controller:
 
     def set_servo_landing_setting(self):
         if args.servo_type == 'a':
-            self.servo_ctl[0] = 0
-            self.servo_ctl[1] = 180
+            self.servo_ctl.set_all_smooth([0, 180])
         elif args.servo_type == 'b':
-            self.servo_ctl[0] = 180
-            self.servo_ctl[1] = 360
+            self.servo_ctl.set_all_smooth([180, 360])
 
     def request_data(self):
         self.logger.info("Requesting parameters...")
