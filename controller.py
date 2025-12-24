@@ -19,7 +19,7 @@ from pymavlink import mavutil
 from log import LoggerFactory
 from velocity_estimator import VelocityEstimator
 
-LOCAL_COORDS_PATH = "initial_coords.json"
+LOCAL_COORDS_PATH = "/home/fls/fls-ap-offboard-controller/initial_coords.json"
 
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
@@ -132,7 +132,7 @@ class Controller:
                 f"--out=udp:127.0.0.1:14556",
                 f"--out=udp:192.168.1.230:14550",
                 "--load-module=vicon",
-                f"--cmd=\"vicon set object_name {args.obj_name}; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
+                f"--cmd=\"vicon set object_name {args.obj_name}; vicon set save_init_pos {LOCAL_COORDS_PATH}; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
                 "--daemon",
             ]
 
