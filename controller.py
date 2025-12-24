@@ -136,6 +136,7 @@ class Controller:
                 "--daemon",
             ]
 
+            self.logger.info(f"tacking {args.obj_name}")
             # Start the process without blocking the script
             self.mavproxy_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
             self.logger.info(f"MAVProxy started on process ID {self.mavproxy_process.pid}")
