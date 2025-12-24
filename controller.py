@@ -1671,7 +1671,7 @@ if __name__ == "__main__":
         from led import LED
 
         led = LED(brightness=args.led_brightness)
-        led.show_single_color(color=(200, 230, 0))
+        led.show_single_color(color=(230, 200, 0))
 
     c.request_data()
     c.check_preflight()
@@ -1692,7 +1692,7 @@ if __name__ == "__main__":
         # exit()
 
     if args.led:
-        led.show_single_color(color=(230, 60, 70))
+        led.show_single_color(color=(60, 230, 70))
 
     # ZMQ Handshake
     if args.drone_id is not None:
