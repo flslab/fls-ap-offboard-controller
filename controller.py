@@ -958,7 +958,7 @@ class Controller:
         delta_t = servo_setting['delta_t']
         iterations = servo_setting['iterations']
 
-        for _ in iterations:
+        for _ in range(iterations):
             self.servo_ctl.set_all_smooth(angles_1)
             time.sleep(delta_t)
             self.servo_ctl.set_all_smooth(angles_2)
