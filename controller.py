@@ -952,6 +952,9 @@ class Controller:
                     self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 10)
 
+        for _ in range(20):
+            self.send_position_target(0, 0, -self.takeoff_altitude)
+            time.sleep(1 / 10)
 
     def generate_pos_vel_path(self, waypoints, target_speed, dt):
         path = []
