@@ -24,7 +24,7 @@ class Servo:
         self.offsets = offsets
         self.values = [None, None]
         self.tick_angle = 5
-        self.tick_duration = 0.1
+        self.tick_duration = 0.05
 
     def set(self, index, a):
         angle = a + self.offsets[index]
