@@ -4,18 +4,26 @@ import time
 from pi5RC import pi5RC
 
 
-pwm_pins = [18, 19, 12, 13]
+pwm_pins = [19, 18, 12, 13]
+
 
 class Servo:
-    def __init__(self, num=2):
+    def __init__(self, num=2, offsets=None):
+        if offsets is None:
+            offsets = [0, 0]
         self.servos = [pi5RC(pwm_pins[i]) for i in range(num)]
+        self.offsets = offsets
 
     def set(self, index, a):
-        self.servos[index].set(a)
+        angle = a + self.offsets[index]
+        if 0 <= angle <= 180:
+            self.servos[index].set(angle)
 
     def set_all(self, a):
         for i in range(len(self.servos)):
-            self.servos[i].set(a)
+            angle = a + self.offsets[i]
+            if 0 <= angle <= 180:
+                self.servos[i].set(angle)
 
     def __del__(self):
         for servo in self.servos:
@@ -49,10 +57,12 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("-n", default=2, type=int, help="number of servos [1, 4]")
     ap.add_argument("-i", action="store_true")
+    ap.add_argument("--servo-type", type=str, help="type of light bender servo setting")
     ap.add_argument("--range-test", type=int, nargs=3, help="range test angle1 angle2 repetitions")
     args = ap.parse_args()
 
-    servos = Servo(args.n)
+    offsets = [0, -180] if args.servo_type == 'a' else [-90, -270]
+    servos = Servo(args.n, offsets)
 
     try:
         if args.i:

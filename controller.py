@@ -11,6 +11,8 @@ import mmap
 import urllib.request
 import urllib.error
 from threading import Thread
+import threading
+import queue
 
 import numpy as np
 import zmq
@@ -87,6 +89,39 @@ class MissionItem:
         self.mission_type = 0  # The MAV_MISSION_TYPE value for MAV_MISSION_TYPE_MISSION
 
 
+class FunctionWorker(Thread):
+    def __init__(self, task_queue, logger):
+        super().__init__()
+        self.task_queue = task_queue
+        self.daemon = True  # Ensures thread dies when the main program exits
+        self._stop_event = threading.Event()
+        self.logger = logger
+
+    def run(self):
+        """Main loop that waits for functions and executes them."""
+        while not self._stop_event.is_set():
+            try:
+                # Wait for a function to appear in the queue
+                # timeout allows the loop to check the stop_event periodically
+                func = self.task_queue.get(timeout=1)
+            except queue.Empty:
+                continue
+
+            try:
+                # Execute the received function
+                func()
+            except Exception as e:
+                # catch errors so the thread doesn't crash on a bad task
+                self.logger.error(f"Error executing function: {e}")
+            finally:
+                # Signal that the queue item has been processed
+                self.task_queue.task_done()
+
+    def stop(self):
+        """Signal the thread to exit the loop gracefully."""
+        self._stop_event.set()
+
+
 class Controller:
     def __init__(self, flight_duration, voltage_threshold, takeoff_altitude, land_altitude, log_level=logging.INFO,
                  sim=False,
@@ -116,12 +151,24 @@ class Controller:
         self.initial_yaw = 0
         self.mission_items = []
         self.velocity_estimator = VelocityEstimator(filter_alpha=0.1)
-        self.servo_ctl = None
         self.mavproxy_process = None
         self.mavproxy = mavproxy
         self.manifest = None
         self.initial_coord = [0, 0, 0]
         self.mission = None
+        self.led_worker = None
+        self.led_ctl = None
+        self.servo_worker = None
+        self.servo_ctl = None
+
+        if self.drone_id is not None:
+            self.load_manifest()
+
+        if args.servo:
+            from servo_pwm import Servo
+            offsets = [0, -180] if args.servo_type == 'a' else [-90, -270]
+            self.servo_ctl = Servo(args.servo_count, offsets)
+            self.set_servo_landing_setting()
 
     def connect(self):
         if self.mavproxy:
@@ -154,6 +201,14 @@ class Controller:
         self.connected = True
         self.logger.info(
             f"Heartbeat from system (system {self.master.target_system} component {self.master.target_component})")
+
+    def set_servo_landing_setting(self):
+        if args.servo_type == 'a':
+            self.servo_ctl[0] = 0
+            self.servo_ctl[1] = 180
+        elif args.servo_type == 'b':
+            self.servo_ctl[0] = 180
+            self.servo_ctl[1] = 360
 
     def request_data(self):
         self.logger.info("Requesting parameters...")
@@ -1311,7 +1366,7 @@ class Controller:
 
     def run_servo(self):
         servo_sequences = [self.servo_seq_1, self.servo_seq_2, self.servo_seq_3, self.servo_seq_4, self.servo_seq_5]
-        if args.servo and 0 < args.servo <= 5:
+        if args.servo_test and 0 < args.servo_test <= 5:
             target = servo_sequences[args.servo - 1]
 
             servo_thread = Thread(target=target)
@@ -1384,6 +1439,9 @@ class Controller:
             time.sleep(1)
 
     def stop(self):
+        if args.servo:
+            self.set_servo_landing_setting()
+
         self.land()
 
         if args.led:
@@ -1431,8 +1489,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
-    arg_parser.add_argument("--servo", type=int, default=0, help="turn on the servos")
+    arg_parser.add_argument("--servo", action="store_true", help="enable the servos")
+    arg_parser.add_argument("--servo-test", type=int, default=0, help="servo pattern to run")
     arg_parser.add_argument("--servo-count", type=int, default=2, help="number of the servos")
+    arg_parser.add_argument("--servo-type", type=str, help="type of light bender servo setting")
     arg_parser.add_argument("--led-brightness", type=float, default=1.0, help="change led brightness between 0 and 1")
     arg_parser.add_argument("--land", action="store_true", help="land and exit")
     arg_parser.add_argument("--status", action="store_true", help="show battery voltage and current")
@@ -1615,12 +1675,8 @@ if __name__ == "__main__":
         led.start()
         led.show_single_color()
 
-    if args.servo:
-        from servo_pwm import Servo
-        c.servo_ctl = Servo(args.servo_count)
-
     if args.idle:
-        if args.servo:
+        if args.servo and args.servo_test:
             c.run_servo()
         time.sleep(args.duration)
     else:
