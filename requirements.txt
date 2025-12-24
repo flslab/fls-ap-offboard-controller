@@ -1,3 +1,4 @@
 pymavlink==2.4.43
 pyserial==3.5
 motioncapture
+pyzmq
