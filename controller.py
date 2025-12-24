@@ -960,6 +960,25 @@ class Controller:
                 self.send_attitude_target_deg(*ori)
                 time.sleep(1 / 20)
 
+    def test_trajectory_5(self):
+        waypoints = [
+                        [0, 0, -self.takeoff_altitude+0.25],
+                        [0, 0, -self.takeoff_altitude-0.25],
+                    ] * 5
+
+        for i in range(40):
+            if self.failsafe:
+                return
+            self.send_position_target(*waypoints[0])
+            time.sleep(1 / 10)
+
+        for pos in waypoints:
+            for i in range(10):
+                if self.failsafe:
+                    return
+                self.send_position_target(*pos)
+                time.sleep(1 / 10)
+
     def test_s_trajectory(self):
         self.logger.info("Sending")
         points = [(0.6, 1.7, 0), (0.35, 2, 0), (0, 1.7, 0), (0.15, 1.2, 0), (0.35, 1, 0),
@@ -1221,7 +1240,9 @@ class Controller:
             flight_thread = Thread(target=self.test_trajectory_3)
         elif args.tune_att:
             flight_thread = Thread(target=self.test_trajectory_4)
-            # flight_thread = Thread(target=self.start_mission)
+        elif args.tune_throttle:
+            flight_thread = Thread(target=self.test_trajectory_5)
+# flight_thread = Thread(target=self.start_mission)
             # flight_thread = Thread(target=self.test_trajectory, args=(0, 0, 0))
             # flight_thread = Thread(target=self.test_s_trajectory)
             # flight_thread = Thread(target=self.circular_trajectory)
@@ -1390,6 +1411,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--autotune", action="store_true", help="perform PID autotune")
     arg_parser.add_argument("--tune-att", action="store_true", help="fly tune pattern using attitude command")
     arg_parser.add_argument("--tune-pos", action="store_true", help="fly tune pattern using position command")
+    arg_parser.add_argument("--tune-throttle", action="store_true", help="fly tune pattern for throttle")
     args = arg_parser.parse_args()
 
     mavrouter_proc = None
