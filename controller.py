@@ -1425,7 +1425,7 @@ class Controller:
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--drone-id", type="str", help="drone id")
+    arg_parser.add_argument("--drone-id", type=str, help="drone id")
     arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
