@@ -175,6 +175,8 @@ class Controller:
         self.servo_worker = None
         self.servo_ctl = None
         self.state = DroneState.DISARMED
+        self.remained_battery = 0
+        self.total_flight_time = 0
 
         if self.drone_id is not None:
             self.load_manifest()
@@ -574,9 +576,24 @@ class Controller:
                 self.logger.debug(f"{elapsed:.2f}s | V: {voltage} V | I: {current} A")
                 last_log_time = elapsed
 
+            if args.drone_id is not None:
+                try:
+                    # Non-blocking check for messages
+                    msg = sub_socket.recv_json(flags=zmq.NOBLOCK)
+                    if msg.get('cmd') == 'EMERGENCY':
+                        self.failsafe = True
+                        self.logger.warning(f"Failsafe triggered, emergency message received.)")
+                        break
+                except zmq.Again:
+                    pass
+
             time.sleep(poll_interval)  # prevent 100% CPU loop
 
         if not independent:
+            if args.led and self.failsafe:
+                led.show_single_color((230, 20, 20))
+            self.remained_battery = voltage
+            self.total_flight_time = elapsed
             self.logger.info(f"flight duration: {elapsed:.2f}s,  battery voltage: {voltage} V")
 
     def send_trajectory_message(self, point_num, pos, vel, acc, time_horizon):
@@ -1740,3 +1757,11 @@ if __name__ == "__main__":
     if mavrouter_proc is not None:
         mavrouter_proc.send_signal(signal.SIGINT)  # same as Ctrl+C
         mavrouter_proc.wait(timeout=5)
+
+    if args.drone_id is not None:
+        ack_socket.send_json({
+            "id": args.drone_id,
+            "status": "LANDED",
+            "battery": c.remained_battery,
+            "flight_time": c.total_flight_time
+        })
