@@ -147,6 +147,7 @@ if __name__ == '__main__':
         elif len(args.range_test):
             range_test(servos, *args.range_test)
         elif len(args.set_all):
+            print(args.set_all)
             servos.set_all(args.set_all)
 
     except KeyboardInterrupt:
