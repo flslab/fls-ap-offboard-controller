@@ -113,8 +113,8 @@ if __name__ == '__main__':
     ap.add_argument("--all", action="store_true")
     ap.add_argument("--smooth", action="store_true")
     ap.add_argument("--servo-type", type=str, help="type of light bender servo setting")
-    ap.add_argument("--range-test", type=int, nargs=3, help="range test angle1 angle2 repetitions")
-    ap.add_argument("--set-all", type=int, nargs="+", help="set angles")
+    ap.add_argument("--range-test", type=int, nargs=3, default=[], help="range test angle1 angle2 repetitions")
+    ap.add_argument("--set-all", type=int, nargs="+", default=[], help="set angles")
     args = ap.parse_args()
 
     offsets = [0, -180] if args.servo_type == 'a' else [-90, -270]
