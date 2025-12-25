@@ -114,6 +114,7 @@ if __name__ == '__main__':
     ap.add_argument("--smooth", action="store_true")
     ap.add_argument("--servo-type", type=str, help="type of light bender servo setting")
     ap.add_argument("--range-test", type=int, nargs=3, help="range test angle1 angle2 repetitions")
+    ap.add_argument("--set", type=int, nargs="+", help="set angles")
     args = ap.parse_args()
 
     offsets = [0, -180] if args.servo_type == 'a' else [-90, -270]
@@ -145,6 +146,8 @@ if __name__ == '__main__':
                         servos.set_all(angles)
         elif len(args.range_test):
             range_test(servos, *args.range_test)
+        elif len(args.set):
+            servos.set_all(args.set)
 
     except KeyboardInterrupt:
         print("Program stopped by user")
