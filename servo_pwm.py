@@ -149,6 +149,7 @@ if __name__ == '__main__':
         elif len(args.set_all):
             servos.set_all(args.set_all)
             time.sleep(1)
+            servos.set_all(args.set_all)
 
     except KeyboardInterrupt:
         print("Program stopped by user")
