@@ -22,7 +22,10 @@ from pymavlink import mavutil
 from log import LoggerFactory
 from velocity_estimator import VelocityEstimator
 
-LOCAL_COORDS_PATH = "/home/fls/fls-ap-offboard-controller/initial_coords.json"
+LOCAL_COORDS_PATH = "initial_coords.json"
+VICON_POS_LOG_PATH = "pos_log.json"
+VICON_STOP_TRIGGER_PATH = "vicon_stop_trigger"
+
 
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
@@ -190,6 +193,15 @@ class Controller:
 
     def connect(self):
         if self.mavproxy:
+            if self.manifest:
+                work_dir = self.manifest['common']['work_dir']
+            else:
+                work_dir = "/home/fls/fls-ap-offboard-controller"
+
+            local_coords_path = os.path.join(work_dir, LOCAL_COORDS_PATH)
+            vicon_pos_log_path = os.path.join(work_dir, VICON_POS_LOG_PATH)
+            vicon_stop_trigger = os.path.join(work_dir, VICON_STOP_TRIGGER_PATH)
+
             cmd = [
                 "mavproxy.py",
                 f"--master={self.device}",
@@ -197,7 +209,7 @@ class Controller:
                 f"--out=udp:127.0.0.1:14556",
                 f"--out=udp:192.168.1.230:14550",
                 "--load-module=vicon",
-                f"--cmd=\"vicon set; vicon set object_name {args.obj_name}; vicon set save_init_pos {LOCAL_COORDS_PATH}; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
+                f"--cmd=\"vicon set; vicon set object_name {args.obj_name}; vicon set save_init_pos {local_coords_path}; vicon set save_pos_log {vicon_pos_log_path}; vicon set vicon_stop_trigger {vicon_stop_trigger}; vicon set vision_rate 20; vicon set gps_rate 10; vicon set; vicon start;\"",
                 "--daemon",
             ]
 
@@ -968,22 +980,13 @@ class Controller:
 
         self.upload_mission(self.mission_items)
 
-    def servo_test_pattern(self):
-        servo_setting = self.mission[self.drone_id]['servo']
-        angles_1 = servo_setting['start']
-        angles_2 = servo_setting['end']
-        delta_t = servo_setting['delta_t']
-        iterations = servo_setting['iterations']
-
+    def servo_test_pattern(self, angles, delta_t, iterations):
         for _ in range(iterations):
-            self.servo_ctl.set_all_smooth(angles_1)
-            if self.failsafe:
-                return
-            time.sleep(delta_t)
-            self.servo_ctl.set_all_smooth(angles_2)
-            if self.failsafe:
-                return
-            time.sleep(delta_t)
+            for a in angles:
+                self.servo_ctl.set_all_smooth(a)
+                if self.failsafe:
+                    return
+                time.sleep(delta_t)
 
     def start_mission(self):
         x, y, z = self.mission[self.drone_id]['target']
@@ -993,10 +996,17 @@ class Controller:
         x, y, z = x - ix, y - iy, z
         points = [(x, -y, -z)]
 
-        flight_duration = self.mission[self.drone_id]['servo']['delta_t'] * self.mission[self.drone_id]['servo']['iterations'] * 2
+        servo_setting = self.mission[self.drone_id]['servo']
+        angles = servo_setting.get('angles', [])
+        delta_t = servo_setting['delta_t']
+        iterations = servo_setting['iterations']
+
+        flight_duration = delta_t * iterations * len(angles)
         flight_duration = max(flight_duration, self.flight_duration)
-        servo_thread = Thread(target=self.servo_test_pattern)
-        servo_thread.start()
+
+        if len(angles):
+            servo_thread = Thread(target=self.servo_test_pattern, args=(angles, delta_t, iterations))
+            servo_thread.start()
 
         for j in range(1):
             for point in points:
@@ -1006,8 +1016,12 @@ class Controller:
                     self.send_position_target(point[0], point[1], point[2])
                     time.sleep(1 / 10)
 
-        servo_thread.join()
-        led.clear()
+        if len(angles):
+            servo_thread.join()
+
+        if args.led:
+            led.clear()
+
         for _ in range(20):
             if self.failsafe:
                 return
@@ -1521,6 +1535,15 @@ class Controller:
             del self.servo_ctl
 
         if self.mavproxy:
+            with open("vicon_stop_trigger", "w") as f:
+                f.write("stop")
+
+            self.logger.info("Sent stop trigger to Vicon module. Waiting for log save...")
+
+            # Give MAVProxy's loop time to see the file and write the CSV
+            # The loop runs frequently, so 1-2 seconds is usually plenty.
+            time.sleep(2)
+
             try:
                 pgid = os.getpgid(self.mavproxy_process.pid)
             except ProcessLookupError:
@@ -1614,6 +1637,8 @@ if __name__ == "__main__":
         voltage_threshold=args.voltage,
         drone_id=args.drone_id
     )
+
+    c.load_manifest()
     c.connect()
 
     if args.reboot:
@@ -1695,7 +1720,6 @@ if __name__ == "__main__":
     c.set_initial_yaw()
     c.set_battery_cells()
 
-    c.load_manifest()
     try:
         c.download_config_http()
     except Exception:
