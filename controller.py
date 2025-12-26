@@ -1786,6 +1786,7 @@ if __name__ == "__main__":
         ack_socket.send_json({
             "id": args.drone_id,
             "status": "LANDED",
+            "failsafe": c.failsafe,
             "battery": c.remained_battery,
             "flight_time": c.total_flight_time
         })
