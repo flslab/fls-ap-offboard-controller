@@ -29,7 +29,7 @@ VICON_STOP_TRIGGER_PATH = "vicon_stop_trigger"
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
 
-MIN_CELL_VOLT = 3.75
+MIN_CELL_VOLT = 3.7
 
 # Position covariance (6x6 matrix, but we send diagonal elements)
 pose_covariance = [
