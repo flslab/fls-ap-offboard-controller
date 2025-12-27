@@ -1001,7 +1001,7 @@ class Controller:
         iterations = servo_setting['iterations']
 
         flight_duration = delta_t * iterations * len(angles)
-        flight_duration = max(flight_duration, self.flight_duration)
+        # flight_duration = max(flight_duration, self.flight_duration)
 
         if len(angles):
             servo_thread = Thread(target=self.servo_test_pattern, args=(angles, delta_t, iterations))
@@ -1403,9 +1403,9 @@ class Controller:
 
     def start_flight(self):
         battery_thread = Thread(target=self.watch_battery, daemon=True)
-        time.sleep(3)
-        c.takeoff()
         time.sleep(2)
+        c.takeoff()
+        time.sleep(3)
 
         if args.drone_id is not None:
             flight_thread = Thread(target=self.start_mission)
