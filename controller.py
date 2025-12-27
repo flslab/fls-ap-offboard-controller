@@ -23,14 +23,13 @@ from log import LoggerFactory
 from velocity_estimator import VelocityEstimator
 
 LOCAL_COORDS_PATH = "initial_coords.json"
-VICON_POS_LOG_PATH = "pos_log.json"
 VICON_STOP_TRIGGER_PATH = "vicon_stop_trigger"
 
 
 linear_accel_cov = 0.01
 angular_vel_cov = 0.01
 
-MIN_CELL_VOLT = 3.7
+MIN_CELL_VOLT = 3.75
 
 # Position covariance (6x6 matrix, but we send diagonal elements)
 pose_covariance = [
@@ -199,7 +198,7 @@ class Controller:
                 work_dir = "/home/fls/fls-ap-offboard-controller"
 
             local_coords_path = os.path.join(work_dir, LOCAL_COORDS_PATH)
-            vicon_pos_log_path = os.path.join(work_dir, VICON_POS_LOG_PATH)
+            vicon_pos_log_path = os.path.join(work_dir, "logs", f"{args.name_tag}.json")
             vicon_stop_trigger = os.path.join(work_dir, VICON_STOP_TRIGGER_PATH)
 
             cmd = [
@@ -1571,6 +1570,7 @@ class Controller:
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--drone-id", type=str, help="drone id")
+    arg_parser.add_argument("--name-tag", type=str, help="mission name gor tagging the log file")
     arg_parser.add_argument("--test-motors", action="store_true", help="test motors and exit")
     arg_parser.add_argument("--reboot", action="store_true", help="reboot")
     arg_parser.add_argument("--led", action="store_true", help="turn on the leds")
@@ -1790,3 +1790,4 @@ if __name__ == "__main__":
             "battery": c.remained_battery,
             "flight_time": c.total_flight_time
         })
+        c.logger.info("Sent landing confirmation.")
