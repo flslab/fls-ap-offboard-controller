@@ -436,9 +436,11 @@ class Controller:
         )
         self.logger.info("Landing command sent")
 
-        while True:
+        start_time = time.time()
+        elapsed = 0
+        while elapsed < 10:
             msg = self.master.recv_match(type='HEARTBEAT', blocking=True, timeout=1)
-
+            elapsed = time.time() - start_time
             if msg is None:
                 continue
 
